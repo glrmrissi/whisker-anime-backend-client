@@ -96,7 +96,6 @@ export class KitsuApiService {
 
   async getTrendingAnime(limit: number): Promise<any> {
     return this.get('/trending/anime', {
-      'page[limit]': limit,
       'limit': limit,
     });
   }
@@ -118,5 +117,14 @@ export class KitsuApiService {
     return this.get('/users', {
       'filter[self]': true,
     });
+  }
+
+  async getAnimeWithPagination(limit: number, offset: number, nsfw?: string): Promise<any> {
+    const params: Record<string, any> = {
+      'page[limit]': limit,
+      'page[offset]': offset,
+    };
+
+    return this.get('/anime', params);
   }
 }
