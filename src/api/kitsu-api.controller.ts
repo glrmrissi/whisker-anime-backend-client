@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
 import { KitsuApiService } from "./kitsu-api.service";
+import { ApiGetAnimeSearchByTitle } from "./docs/ApiGetAnimeSearchByTitle";
 
 @Controller('kitsu-api')
 export class KitsuApiController {
@@ -30,6 +31,7 @@ export class KitsuApiController {
         return this.kitsuApiService.getAnimeWithPagination(finalLimit, offset, nsfw);
     }
 
+    @ApiGetAnimeSearchByTitle()
     @Get('anime/search/:title')
     async searchAnime(
         @Param('title') title: string,
