@@ -6,9 +6,10 @@ import { Repository } from "typeorm";
 import { UserEntity } from "src/shared/UserEntity";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
+import { ConfigService } from "@nestjs/config/dist/config.service";
 
 type loginResponse = {
-    access_token: string, 
+    access_token: string,
     refresh_token: string
 }
 
@@ -18,13 +19,27 @@ export class UserAuthService {
         private jwtService: JwtService,
         @InjectRepository(UserEntity)
         private userRepository: Repository<UserEntity>,
+        private configService: ConfigService,
     ) { }
 
     async register(registerDto: RegisterDto): Promise<{ message: string }> {
         try {
+            const pepper = this.configService.get<string>('B_CRYPT_HASH_PEPPER');
+
+            const userExists = await this.verifyIfUserExists(registerDto.username);
+            if (userExists) {
+                throw new BadRequestException('Username already taken');
+            }
+
+            const nickNameExists = await this.verifyIfNickNameExists(registerDto.nickName);
+            if (nickNameExists) {
+                throw new BadRequestException('NickName already taken');
+            }
+
             const password = registerDto.password;
             const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
+            const hashedPassword = await bcrypt.hash(password + pepper, salt);
+
             const user = this.userRepository.create({ ...registerDto, password: hashedPassword });
             await this.userRepository.save(user);
             return { message: 'User registered successfully' };
@@ -35,11 +50,11 @@ export class UserAuthService {
 
     async login(loginDto: LoginDto): Promise<loginResponse> {
         try {
-            if(loginDto.username === undefined || loginDto.password === undefined) {
+            if (loginDto.username === undefined || loginDto.password === undefined) {
                 throw new BadRequestException('Username and password are required');
             }
 
-            if(!loginDto.username || !loginDto.password) {
+            if (!loginDto.username || !loginDto.password) {
                 throw new BadRequestException('Username and password cannot be empty');
             }
 
@@ -63,11 +78,13 @@ export class UserAuthService {
 
     async verifyUser(username: string, password: string): Promise<loginResponse> {
         await this.verifyIfUserExists(username);
+        const pepper = this.configService.get<string>('B_CRYPT_HASH_PEPPER');
         const user = await this.userRepository.findOne({ where: { username } });
         if (!user) {
             throw new UnauthorizedException('User not found');
         }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        
+        const isPasswordValid = await bcrypt.compare(password + pepper, user.password);
         if (!isPasswordValid) {
             throw new UnauthorizedException('Invalid password');
         }
@@ -78,6 +95,11 @@ export class UserAuthService {
 
     private async verifyIfUserExists(username: string): Promise<boolean> {
         const user = await this.userRepository.findOne({ where: { username } });
+        return !!user;
+    }
+
+    private async verifyIfNickNameExists(nickName: string): Promise<boolean> {
+        const user = await this.userRepository.findOne({ where: { nickName } });
         return !!user;
     }
 
@@ -92,14 +114,14 @@ export class UserAuthService {
 
     async verifyToken(token: string): Promise<any> {
         try {
-            if(!token) {
+            if (!token) {
                 throw new UnauthorizedException('Token is required');
             }
             await this.verifyUserByToken(token);
-            const res =await this.jwtService.decode(token);
+            const res = await this.jwtService.decode(token);
             const username = res.username;
             const password = res.password;
-            if(!username || !password) {
+            if (!username || !password) {
                 throw new UnauthorizedException('Invalid token payload');
             }
 
