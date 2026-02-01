@@ -35,7 +35,6 @@ export class UserAuthController {
     @HttpCode(HttpStatus.OK)
     @Post('refresh-token')
     async refreshToken(@Body() refreshTokenDto: { refresh_token: string }) {
-        await this.userAuthService.verifyToken(refreshTokenDto.refresh_token);
         return this.userAuthService.refreshToken(refreshTokenDto.refresh_token);
     }
 

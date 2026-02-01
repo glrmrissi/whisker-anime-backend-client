@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { LoginDto } from "./dtos/login.dto";
 import { JwtService } from "@nestjs/jwt";
 import { RegisterDto } from "./dtos/register.dto";
@@ -35,12 +35,16 @@ export class UserAuthService {
 
     async login(loginDto: LoginDto): Promise<loginResponse> {
         try {
-            const res = {
-                refresh_token: await this.jwtService.signAsync(loginDto, { expiresIn: '1d' }),
-                access_token: await this.jwtService.signAsync(loginDto),
+            if(loginDto.username === undefined || loginDto.password === undefined) {
+                throw new BadRequestException('Username and password are required');
             }
-            console.log('Login response:', res);
-            return res;
+
+            if(!loginDto.username || !loginDto.password) {
+                throw new BadRequestException('Username and password cannot be empty');
+            }
+
+            return await this.verifyUser(loginDto.username, loginDto.password);
+
         } catch (error) {
             throw new UnauthorizedException('Login failed, maybe invalid credentials');
         }
@@ -48,6 +52,7 @@ export class UserAuthService {
 
     async refreshToken(refresh_token: string): Promise<{ access_token: string }> {
         try {
+            await this.verifyToken(refresh_token);
             const payload = await this.jwtService.verifyAsync(refresh_token);
             const newAccessToken = await this.jwtService.signAsync({ username: payload.username });
             return { access_token: newAccessToken };
@@ -56,17 +61,19 @@ export class UserAuthService {
         }
     }
 
-    async verifyUser(username: string, password: string): Promise<string> {
+    async verifyUser(username: string, password: string): Promise<loginResponse> {
         await this.verifyIfUserExists(username);
-        const user = username;
+        const user = await this.userRepository.findOne({ where: { username } });
         if (!user) {
             throw new UnauthorizedException('User not found');
         }
-        const isPasswordValid = await bcrypt.compare(password, password);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             throw new UnauthorizedException('Invalid password');
         }
-        return user as string;
+        const access_token = await this.jwtService.signAsync({ username: user.username });
+        const refresh_token = await this.jwtService.signAsync({ username: user.username });
+        return { access_token, refresh_token };
     }
 
     private async verifyIfUserExists(username: string): Promise<boolean> {
@@ -85,10 +92,10 @@ export class UserAuthService {
 
     async verifyToken(token: string): Promise<any> {
         try {
-            await this.verifyUserByToken(token);
             if(!token) {
                 throw new UnauthorizedException('Token is required');
             }
+            await this.verifyUserByToken(token);
             const res =await this.jwtService.decode(token);
             const username = res.username;
             const password = res.password;
