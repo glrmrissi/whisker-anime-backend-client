@@ -63,4 +63,23 @@ export class UsersService {
         return user;
     }
 
+    async updateBio(userId: string, bio: string): Promise<{ message: string }> {
+        await this.getUserByUuid(userId);
+        try {
+            if(bio === undefined){
+                await this.userRepository.update({ id: userId }, { bio: null });
+            }
+
+            if(userId === undefined){
+                throw new BadRequestException('User ID is required');
+            }
+            if(userId !== undefined && bio !== undefined){
+                await this.userRepository.update({ id: userId }, { bio });
+            }
+            
+            return { message: 'Bio updated successfully' };
+        } catch (error) {
+            throw new BadRequestException('Failed to update bio', error.message);
+        }
+    }
 }
