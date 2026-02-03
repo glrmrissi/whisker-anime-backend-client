@@ -131,11 +131,14 @@ export class UserAuthService {
         }
     }
 
-    async forgotPassword(userId: string) {
-        await this.verifyIfUserExists(userId);
+    async forgotPassword(username: string) {
+        const user = await this.userRepository.findOne({ where: { username } });
+        if (!user) {
+            throw new BadRequestException('User not found');
+        }
         const code = await this.generateCode();
         try {
-            this.userRepository.update({ id: userId }, {
+            await this.userRepository.update({ id: user.id }, {
                 verificationToken: code,
                 tokenExpiry: new Date(Date.now() + 3600000) 
             });
@@ -146,27 +149,29 @@ export class UserAuthService {
 
     async generateCode() {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log(`Generated code: ${code}`);
         const hashedCode = await bcrypt.hash(code, 10);
         return hashedCode;
     }
 
-    async newPassword(userId: string, newPassword: string, code: string) {
-        const user = await this.userRepository.findOne({ where: { id: userId } });
+    async newPassword(username: string, newPassword: string, code: string) {
+        const user = await this.userRepository.findOne({ where: { username } });
         if (!user) {
             throw new BadRequestException('User not found');
         }
-        const isCodeValid = await this.verifyCode(userId, code);
+        const isCodeValid = await this.verifyCode(username, code);
         if (!isCodeValid) {
             throw new BadRequestException('Invalid or expired code');
         }
+        const userId = user.id;
         const pepper = this.configService.get<string>('B_CRYPT_HASH_PEPPER');
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword + pepper, salt);
         await this.userRepository.update({ id: userId }, { password: hashedPassword });
     }
 
-    async verifyCode(userId: string, code: string): Promise<boolean> {
-        const user = await this.userRepository.findOne({ where: { id: userId } });
+    async verifyCode(username: string, code: string): Promise<boolean> {
+        const user = await this.userRepository.findOne({ where: { username } });
         if (!user || !user.verificationToken) {
             return false;
         }

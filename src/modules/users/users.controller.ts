@@ -12,7 +12,6 @@ export class UsersController {
     ) { }
 
     @Post('upload-avatar')
-    @Public()
     @UseInterceptors(FileInterceptor('file'))
     async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Body() body: { userId: string }) {
         const resizedBuffer = await this.userService.updateAvatar(body.userId, file.buffer);

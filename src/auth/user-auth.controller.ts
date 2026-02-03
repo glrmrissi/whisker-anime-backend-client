@@ -42,16 +42,16 @@ export class UserAuthController {
     @Public()
     @Post('forgot-password')
     @HttpCode(HttpStatus.OK)
-    async forgotPassword(@Body('userId') userId: string) {
-        await this.userAuthService.forgotPassword(userId);
+    async forgotPassword(@Body('username') username: string) {
+        await this.userAuthService.forgotPassword(username);
         return { message: 'Password reset link sent if email exists' };
     }
 
     @HttpCode(HttpStatus.OK)
     @Public()
     @Post('new-password')
-    async newPassword(@Body('userId') userId: string, @Body('newPassword') newPassword: string, @Body('code') code: string) {
-        await this.userAuthService.newPassword(userId, newPassword, code);
+    async newPassword(@Body('username') username: string, @Body('newPassword') newPassword: string, @Body('code') code: string) {
+        await this.userAuthService.newPassword(username, newPassword, code);
         return { message: 'Password updated successfully' };
     }
 
