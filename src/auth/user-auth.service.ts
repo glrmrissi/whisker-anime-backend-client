@@ -130,4 +130,60 @@ export class UserAuthService {
             throw new UnauthorizedException('Invalid token');
         }
     }
+
+    async forgotPassword(userId: string) {
+        await this.verifyIfUserExists(userId);
+        const code = await this.generateCode();
+        try {
+            this.userRepository.update({ id: userId }, {
+                verificationToken: code,
+                tokenExpiry: new Date(Date.now() + 3600000) 
+            });
+        } catch (error) {
+            throw new BadRequestException('Failed to set verification token');
+        }
+    }
+
+    async generateCode() {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedCode = await bcrypt.hash(code, 10);
+        return hashedCode;
+    }
+
+    async newPassword(userId: string, newPassword: string, code: string) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new BadRequestException('User not found');
+        }
+        const isCodeValid = await this.verifyCode(userId, code);
+        if (!isCodeValid) {
+            throw new BadRequestException('Invalid or expired code');
+        }
+        const pepper = this.configService.get<string>('B_CRYPT_HASH_PEPPER');
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword + pepper, salt);
+        await this.userRepository.update({ id: userId }, { password: hashedPassword });
+    }
+
+    async verifyCode(userId: string, code: string): Promise<boolean> {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user || !user.verificationToken) {
+            return false;
+        }
+
+        if(user.tokenExpiry && user.tokenExpiry < new Date()) {
+            return false;
+        }
+
+        if(user.username !==  null) {
+            // TODO: Make this working with notifier service to send email           
+        }
+
+        const isCodeValid = await bcrypt.compare(code, user.verificationToken);
+        if (!isCodeValid) {
+            return false;
+        }
+
+        return true;
+    }
 }

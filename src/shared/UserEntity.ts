@@ -46,4 +46,28 @@ export class UserEntity {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @Column({ type: 'text', nullable: true })
+    bio: string | null;
+
+    @Column({ default: false })
+    isEmailVerified: boolean;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    verificationToken: string | null;
+
+    @Column({ type: 'timestamp', nullable: true })
+    tokenExpiry: Date | null;
+
+    @Column({ type: 'timestamp', nullable: true })
+    lastLogin: Date | null;
+
+    @Column({ type: 'varchar', length: 50, default: 'public' })
+    profileVisibility: string;
+
+    @Column({ default: false })
+    twoFactorEnabled: boolean;
+
+    @Column({ type: 'varchar', length: 10, default: 'en' })
+    preferredLanguage: string;
 }

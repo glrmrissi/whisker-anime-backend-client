@@ -38,10 +38,26 @@ export class UserAuthController {
         return this.userAuthService.refreshToken(refreshTokenDto.refresh_token);
     }
 
+    @HttpCode(HttpStatus.OK)
+    @Public()
+    @Post('forgot-password')
+    @HttpCode(HttpStatus.OK)
+    async forgotPassword(@Body('userId') userId: string) {
+        await this.userAuthService.forgotPassword(userId);
+        return { message: 'Password reset link sent if email exists' };
+    }
+
+    @HttpCode(HttpStatus.OK)
+    @Public()
+    @Post('new-password')
+    async newPassword(@Body('userId') userId: string, @Body('newPassword') newPassword: string, @Body('code') code: string) {
+        await this.userAuthService.newPassword(userId, newPassword, code);
+        return { message: 'Password updated successfully' };
+    }
+
     @UseGuards(AuthGuard)
     @Get('profile')
     getProfile(@Request() req: any) {
         return req.user;
     }
-
 }
