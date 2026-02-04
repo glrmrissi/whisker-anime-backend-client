@@ -10,12 +10,18 @@ import { JwtModule } from '@nestjs/jwt';
 import * as env from 'dotenv';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../shared/UserEntity'
+import { NotifierModule } from 'src/shared/notifier/notifier.module';
 env.config();
 @Module({
-  imports: [ConfigModule, JwtModule.register({
+  imports: [
+  ConfigModule, 
+  JwtModule.register({
     secret: process.env.JWT_SECRET_KEY, 
     signOptions: { expiresIn: '6h' }, 
-  }), TypeOrmModule.forFeature([UserEntity])],
+  }), 
+  TypeOrmModule.forFeature([UserEntity]),
+  NotifierModule
+],
   controllers: [AuthController, UserAuthController],
   providers: [AuthService, TokenStorage, AuthBootstrapService, UserAuthService],
   exports: [AuthService, TokenStorage, AuthBootstrapService, UserAuthService, JwtModule],

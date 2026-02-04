@@ -11,6 +11,8 @@ import { APP_GUARD } from '@nestjs/core/constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './shared/UserEntity';
 import { UsersModule } from './modules/users/users.module';
+import { NotifierModule } from './shared/notifier/notifier.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -31,9 +33,16 @@ import { UsersModule } from './modules/users/users.module';
     MulterModule.register({
       dest: './uploads',
     }),
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT) || 6379,
+      },
+    }),
     AuthModule,
     ApiModule,
     UsersModule,
+    NotifierModule
   ],
   controllers: [AppController, KitsuApiController],
   providers: [

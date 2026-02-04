@@ -7,10 +7,17 @@ import { UserEntity } from "src/shared/UserEntity";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
 import { ConfigService } from "@nestjs/config/dist/config.service";
+import { NotifierService } from "src/shared/notifier/notifier.service";
 
 type loginResponse = {
     access_token: string,
     refresh_token: string
+}
+
+interface Notification {
+    subject: string;
+    message: string;
+    recipient: string;
 }
 
 @Injectable()
@@ -20,6 +27,7 @@ export class UserAuthService {
         @InjectRepository(UserEntity)
         private userRepository: Repository<UserEntity>,
         private configService: ConfigService,
+        private notifierService: NotifierService
     ) { }
 
     async register(registerDto: RegisterDto): Promise<{ message: string }> {
@@ -83,11 +91,12 @@ export class UserAuthService {
         if (!user) {
             throw new UnauthorizedException('User not found');
         }
-        
+
         const isPasswordValid = await bcrypt.compare(password + pepper, user.password);
         if (!isPasswordValid) {
             throw new UnauthorizedException('Invalid password');
         }
+        await this.userRepository.update({ id: user.id }, { lastLogin: new Date() });
         const access_token = await this.jwtService.signAsync({ username: user.username });
         const refresh_token = await this.jwtService.signAsync({ username: user.username });
         return { access_token, refresh_token };
@@ -136,20 +145,35 @@ export class UserAuthService {
         if (!user) {
             throw new BadRequestException('User not found');
         }
-        const code = await this.generateCode();
+        const code = await this.generateCode(username);
+
         try {
             await this.userRepository.update({ id: user.id }, {
                 verificationToken: code,
-                tokenExpiry: new Date(Date.now() + 3600000) 
+                tokenExpiry: new Date(Date.now() + 3600000)
             });
         } catch (error) {
             throw new BadRequestException('Failed to set verification token');
         }
     }
 
-    async generateCode() {
+    async generateCode(username: string): Promise<string> {
+        const user = await this.userRepository.findOne({ where: { username } });
+
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        console.log(`Generated code: ${code}`);
+
+        if(!user?.username) {
+            throw new BadRequestException('User not found');
+        }
+
+        if (user.username !== null) {
+            this.notifierService.notify({
+                subject: 'Password Reset Attempt',
+                message: `A password reset attempt was made for your account. If this was not you, please secure your account immediately. But if this was you, please use the code ${code} to reset your password. This code will expire in 1 hour.`,
+                recipient: user.username
+            }, { adminEmails: true, clientEmail: user.username });
+        }
+        
         const hashedCode = await bcrypt.hash(code, 10);
         return hashedCode;
     }
@@ -176,12 +200,8 @@ export class UserAuthService {
             return false;
         }
 
-        if(user.tokenExpiry && user.tokenExpiry < new Date()) {
+        if (user.tokenExpiry && user.tokenExpiry < new Date()) {
             return false;
-        }
-
-        if(user.username !==  null) {
-            // TODO: Make this working with notifier service to send email           
         }
 
         const isCodeValid = await bcrypt.compare(code, user.verificationToken);
