@@ -4,6 +4,7 @@ import { LoginDto } from "./dtos/login.dto";
 import { RegisterDto } from "./dtos/register.dto";
 import { AuthGuard } from "src/guards/auth.guard";
 import { Public } from "src/decorators/set-meta-data.decorator";
+import { Throttle } from "@nestjs/throttler";
 
 @Controller('user-auth')
 export class UserAuthController {
@@ -27,6 +28,7 @@ export class UserAuthController {
 
     @HttpCode(HttpStatus.OK)
     @Public()
+    @Throttle({default: {limit: 1, ttl:60000 , blockDuration: 30000}})
     @Post('login')
     async login(@Body() loginDto: LoginDto) {
         return this.userAuthService.login(loginDto);
@@ -54,6 +56,7 @@ export class UserAuthController {
         await this.userAuthService.newPassword(username, newPassword, code);
         return { message: 'Password updated successfully' };
     }
+
 
     @UseGuards(AuthGuard)
     @Get('profile')
