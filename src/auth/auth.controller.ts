@@ -1,15 +1,19 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException, Get } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException, Get, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { TokenStorage } from './token.storage';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshTokenDto } from './dtos/refresh-token.dto';
 import { TokenResponseDto } from './dtos/token-response.dto';
+import { QueryBus } from '@nestjs/cqrs';
+import { GetUserDto } from './querys/get-user.handler';
+import { Public } from 'src/decorators/set-meta-data.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly tokenStorage: TokenStorage,
+    private readonly queryBus: QueryBus
   ) {}
 
   /**
@@ -66,6 +70,14 @@ export class AuthController {
   logout() {
     this.tokenStorage.clearToken();
     return { message: 'Logged out successfully' };
+  }
+
+  @Get('user/:id')
+  @Public()
+  getUser(@Param('id') id: string) {
+    const query = new GetUserDto();
+    query.id = id;
+    return this.queryBus.execute(query);
   }
 }
 

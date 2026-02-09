@@ -26,7 +26,6 @@ export class NotifierService {
     //     );
     // }
     async notify(notification: Notification, options: NotifierRouterOptions): Promise<void> {
-        console.log('NotifierService notify called with:', notification, options);
         await this.notifierRouterQueue.add('send-notification', {
             subject: notification.subject,
             message: notification.message,
