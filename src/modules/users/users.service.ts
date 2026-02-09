@@ -1,15 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/shared/entities/UserEntity';
 import { Repository } from 'typeorm';
 import sharp from 'sharp';
 import fs from 'fs';
+import { GetUserDto } from 'src/auth/querys/get-user.handler';
+import { QueryBus } from '@nestjs/cqrs/dist/query-bus';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(UserEntity)
         private readonly userRepository: Repository<UserEntity>,
+        private readonly queryBus: QueryBus
     ) { }
 
     async updateAvatar(userId: string, file: Buffer): Promise<Buffer> {
@@ -52,31 +55,25 @@ export class UsersService {
     }
 
     private async getUserByUuid(userId: string): Promise<UserEntity> {
-        const user = await this.userRepository.findOne({
-            where: {
-                id: userId
-            }
-        });
-        if (!user) {
-            throw new BadRequestException('User not found');
-        }
-        return user;
+        const query = new GetUserDto();
+        query.id = userId;
+        return this.queryBus.execute(query);
     }
 
     async updateBio(userId: string, bio: string): Promise<{ message: string }> {
         await this.getUserByUuid(userId);
         try {
-            if(bio === undefined){
+            if (bio === undefined) {
                 await this.userRepository.update({ id: userId }, { bio: null });
             }
 
-            if(userId === undefined){
+            if (userId === undefined) {
                 throw new BadRequestException('User ID is required');
             }
-            if(userId !== undefined && bio !== undefined){
+            if (userId !== undefined && bio !== undefined) {
                 await this.userRepository.update({ id: userId }, { bio });
             }
-            
+
             return { message: 'Bio updated successfully' };
         } catch (error) {
             throw new BadRequestException('Failed to update bio', error.message);

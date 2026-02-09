@@ -28,7 +28,7 @@ export class UserAuthController {
 
     @HttpCode(HttpStatus.OK)
     @Public()
-    @Throttle({default: {limit: 1, ttl:60000 , blockDuration: 30000}})
+    @Throttle({default: {limit: 10, ttl:60000 , blockDuration: 30000}})
     @Post('login')
     async login(@Body() loginDto: LoginDto) {
         return this.userAuthService.login(loginDto);

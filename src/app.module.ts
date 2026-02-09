@@ -14,6 +14,7 @@ import { UsersModule } from './modules/users/users.module';
 import { NotifierModule } from './shared/notifier/notifier.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { FavoritesAnimesModule } from './modules/favorites-animes/favorites-animes.module';
 
 @Module({
   imports: [
@@ -60,7 +61,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     AuthModule,
     ApiModule,
     UsersModule,
-    NotifierModule
+    NotifierModule,
+    FavoritesAnimesModule
   ],
   controllers: [AppController, KitsuApiController],
   providers: [

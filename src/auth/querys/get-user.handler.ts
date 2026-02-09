@@ -2,6 +2,7 @@ import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { UserEntity } from "src/shared/entities/UserEntity";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { plainToClass } from "class-transformer";
+import { NotFoundException } from "@nestjs/common";
 
 export class GetUserDto {
   id: string;
@@ -25,7 +26,7 @@ export class GetUserHandler implements IQueryHandler<GetUserDto> {
         );
 
         if(!user) {
-            throw new Error('User not found');
+            throw new NotFoundException('User not found');
         }
 
         return plainToClass(UserEntity, user);

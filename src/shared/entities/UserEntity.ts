@@ -1,7 +1,8 @@
 import { IsStrongPassword, IsUUID } from "class-validator";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Roles } from "../enum/roles.enum";
 import { Exclude } from "class-transformer";
+
 
 @Entity('users')
 export class UserEntity {
@@ -13,7 +14,6 @@ export class UserEntity {
     username: string;
 
     @Column()
-    @Exclude()
     @IsStrongPassword(
         {
             minLength: 8,
@@ -23,6 +23,7 @@ export class UserEntity {
             minSymbols: 1
         }
     )
+    @Exclude()
     password: string;
 
     @Column()
@@ -73,4 +74,7 @@ export class UserEntity {
 
     @Column({ type: 'varchar', length: 10, default: 'en' })
     preferredLanguage: string;
+
+    // @OneToMany('FavoritesAnimeEntity', 'user')
+    // favoriteAnimes: any[];
 }
