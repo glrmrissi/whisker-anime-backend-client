@@ -75,6 +75,6 @@ export class UserEntity {
     @Column({ type: 'varchar', length: 10, default: 'en' })
     preferredLanguage: string;
 
-    // @OneToMany('FavoritesAnimeEntity', 'user')
-    // favoriteAnimes: any[];
+    @OneToMany('FavoritesAnimeEntity', 'user')
+    favoriteAnimes: any[];
 }

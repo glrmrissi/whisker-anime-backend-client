@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, Res, UseGuards } from "@nestjs/common";
+import type { Response } from "express";
 import { UserAuthService } from "./user-auth.service";
 import { LoginDto } from "./dtos/login.dto";
 import { RegisterDto } from "./dtos/register.dto";
@@ -28,10 +29,27 @@ export class UserAuthController {
 
     @HttpCode(HttpStatus.OK)
     @Public()
-    @Throttle({default: {limit: 10, ttl:60000 , blockDuration: 30000}})
+    @Throttle({ default: { limit: 10, ttl: 60000, blockDuration: 30000 } })
     @Post('login')
-    async login(@Body() loginDto: LoginDto) {
-        return this.userAuthService.login(loginDto);
+    async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+        const tokens = await this.userAuthService.login(loginDto);
+        console.log('Setting cookies for login response');
+        console.log('Access Token:', tokens.access_token);
+        console.log('Refresh Token:', tokens.refresh_token);
+        console.log(res)
+        res.cookie('x_access_token', tokens.access_token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 1800000,
+        }); 
+        res.cookie('x_refresh_token', tokens.refresh_token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 3600000,
+        });
+        return { message: 'Login successful' };
     }
 
     @HttpCode(HttpStatus.OK)

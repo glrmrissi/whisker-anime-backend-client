@@ -79,4 +79,12 @@ export class UsersService {
             throw new BadRequestException('Failed to update bio', error.message);
         }
     }
+
+    async getUserSessionUpdate(userId: string): Promise<UserEntity> {
+        const user = await this.getUserByUuid(userId);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        return user;
+    }
 }

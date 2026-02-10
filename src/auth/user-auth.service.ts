@@ -11,7 +11,7 @@ import { NotifierService } from "src/shared/notifier/notifier.service";
 
 type loginResponse = {
     access_token: string,
-    refresh_token: string
+    refresh_token: string,
 }
 
 interface Notification {
@@ -99,7 +99,10 @@ export class UserAuthService {
         await this.userRepository.update({ id: user.id }, { lastLogin: new Date() });
         const access_token = await this.jwtService.signAsync({ username: user.username });
         const refresh_token = await this.jwtService.signAsync({ username: user.username });
-        return { access_token, refresh_token };
+        return {
+            access_token,
+            refresh_token,
+        }
     }
 
     private async verifyIfUserExists(username: string): Promise<boolean> {
@@ -162,7 +165,7 @@ export class UserAuthService {
 
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-        if(!user?.username) {
+        if (!user?.username) {
             throw new BadRequestException('User not found');
         }
 
@@ -173,7 +176,7 @@ export class UserAuthService {
                 recipient: user.username
             }, { adminEmails: true, clientEmail: user.username });
         }
-        
+
         const hashedCode = await bcrypt.hash(code, 10);
         return hashedCode;
     }

@@ -10,6 +10,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './shared/entities/UserEntity';
+import { FavoritesAnimeEntity } from './shared/entities/FavoritesAnime.entity';
 import { UsersModule } from './modules/users/users.module';
 import { NotifierModule } from './shared/notifier/notifier.module';
 import { BullModule } from '@nestjs/bullmq';
@@ -25,7 +26,7 @@ import { FavoritesAnimesModule } from './modules/favorites-animes/favorites-anim
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [UserEntity],
+      entities: [UserEntity, FavoritesAnimeEntity],
       //synchronize: true,
     }),
     ConfigModule.forRoot({

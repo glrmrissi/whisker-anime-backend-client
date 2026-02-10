@@ -36,4 +36,10 @@ export class UsersController {
         query.id = id;
         return this.queryBus.execute(query);
     }
+
+    @Get('user-session/:id')
+    @HttpCode(HttpStatus.OK)
+    getUserSession(@Param('id') id: string) {
+        return this.userService.getUserSessionUpdate(id);
+    }
 }
