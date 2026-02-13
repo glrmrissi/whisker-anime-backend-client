@@ -77,4 +77,10 @@ export class UserEntity {
 
     @OneToMany('FavoritesAnimeEntity', 'user')
     favoriteAnimes: any[];
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    lastUserAgent: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    lastIpAddress: string;
 }

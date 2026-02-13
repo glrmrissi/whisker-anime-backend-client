@@ -12,10 +12,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './shared/entities/UserEntity';
 import { FavoritesAnimeEntity } from './shared/entities/FavoritesAnime.entity';
 import { UsersModule } from './modules/users/users.module';
-import { NotifierModule } from './shared/notifier/notifier.module';
+import { NotifierModule } from './modules/notifier/notifier.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { FavoritesAnimesModule } from './modules/favorites-animes/favorites-animes.module';
+import { CronJobModule } from './modules/cron-jobs/cron-job.module';
 
 @Module({
   imports: [
@@ -63,7 +64,8 @@ import { FavoritesAnimesModule } from './modules/favorites-animes/favorites-anim
     ApiModule,
     UsersModule,
     NotifierModule,
-    FavoritesAnimesModule
+    FavoritesAnimesModule,
+    CronJobModule
   ],
   controllers: [AppController, KitsuApiController],
   providers: [

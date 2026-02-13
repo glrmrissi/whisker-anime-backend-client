@@ -7,11 +7,12 @@ import { UserEntity } from "src/shared/entities/UserEntity";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
 import { ConfigService } from "@nestjs/config/dist/config.service";
-import { NotifierService } from "src/shared/notifier/notifier.service";
+import { NotifierService } from "src/modules/notifier/notifier.service";
 
 type loginResponse = {
     access_token: string,
     refresh_token: string,
+    userId: string
 }
 
 interface Notification {
@@ -102,6 +103,7 @@ export class UserAuthService {
         return {
             access_token,
             refresh_token,
+            userId: user.id
         }
     }
 
@@ -213,5 +215,68 @@ export class UserAuthService {
         }
 
         return true;
+    }
+
+    private async verifyIfUserAgentIsTheSameOfLastLogin(userAgent: string, userId: string): Promise<boolean> {
+        try {
+            const user = await this.userRepository.findOne({ where: { id: userId } });
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+            return user.lastUserAgent === userAgent;
+        }
+        catch (error) {
+            throw new BadRequestException('Failed to verify user agent', error.message);
+        }
+    }
+
+    async saveUserAgent(userAgent: string, userId: string, ip: string): Promise<void> {
+        await this.verifyIfUserAgentIsTheSameOfLastLogin(userAgent, userId);
+        await this.saveIpOfUserAgent(userId, ip);
+        try {
+            await this.userRepository.update({ id: userId }, { lastUserAgent: userAgent });
+        } catch (error) {
+            throw new BadRequestException('Failed to save user agent', error.message);
+        }
+    }
+
+    private async saveIpOfUserAgent(userId: string, ip: string): Promise<void> {
+        try {
+            const user = await this.userRepository.findOne({ where: { id: userId } });
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+            this.verifyIfIpOfUserAgentIsTheSameOfLastLogin(userId, ip);
+            const hashedIp = await this.hashIp(ip);
+            this.userRepository.update({ id: userId }, { lastIpAddress: hashedIp });
+            this.notifierService.notify({
+                subject: 'New Login Detected',
+                message: `A new login was detected for your account from IP address ${ip}. If this was not you, please secure your account immediately.`,
+                recipient: user.username
+            }, { adminEmails: true, clientEmail: user.username });
+        } catch (error) {
+            throw new BadRequestException('Failed to save IP of user agent', error.message);
+        }
+    }
+    
+    private async hashIp(ip: string): Promise<string> {
+        const salt = await bcrypt.genSalt(10);
+        const hashedIp = await bcrypt.hash(ip, salt);
+        const peeper = this.configService.get<string>('B_CRYPT_HASH_PEPPER');
+        const finalHashedIp = await bcrypt.hash(hashedIp + peeper, salt);
+        return finalHashedIp;
+    }
+
+    private async verifyIfIpOfUserAgentIsTheSameOfLastLogin(userId: string, ip: string): Promise<boolean> {
+        try {
+            const user = await this.userRepository.findOne({ where: { id: userId } });
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+            const hashedIp = await this.hashIp(ip);
+            return user.lastIpAddress === hashedIp;
+        } catch (error) {
+            throw new BadRequestException('Failed to verify IP of user agent', error.message);
+        }
     }
 }

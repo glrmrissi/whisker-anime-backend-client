@@ -10,7 +10,7 @@ import { JwtModule } from '@nestjs/jwt';
 import * as env from 'dotenv';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../shared/entities/UserEntity'
-import { NotifierModule } from 'src/shared/notifier/notifier.module';
+import { NotifierModule } from 'src/modules/notifier/notifier.module';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GetUserHandler } from './querys/get-user.handler';
 env.config();
