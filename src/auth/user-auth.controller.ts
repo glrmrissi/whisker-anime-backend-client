@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, UseGuards } from "@nestjs/common";
 import type { Response } from "express";
 import { UserAuthService } from "./user-auth.service";
 import { LoginDto } from "./dtos/login.dto";
@@ -31,12 +31,13 @@ export class UserAuthController {
     @Public()
     @Throttle({ default: { limit: 10, ttl: 60000, blockDuration: 30000 } })
     @Post('login')
-    async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response, @Req() req: any) {
         const tokens = await this.userAuthService.login(loginDto);
-        console.log('Setting cookies for login response');
-        console.log('Access Token:', tokens.access_token);
-        console.log('Refresh Token:', tokens.refresh_token);
-        console.log(res)
+        try {
+            await this.userAuthService.saveUserAgent(req.headers['user-agent'], tokens.userId, req.ip);
+        } catch (error) {
+            console.error('Failed to save browser fingerprint');
+        }
         res.cookie('x_access_token', tokens.access_token, {
             httpOnly: true,
             secure: false,
@@ -48,6 +49,12 @@ export class UserAuthController {
             secure: false,
             sameSite: 'strict',
             maxAge: 7 * 24 * 3600000,
+        });
+        res.cookie('user_id', tokens.userId, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 1800000,
         });
         return { message: 'Login successful' };
     }

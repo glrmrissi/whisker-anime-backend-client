@@ -28,7 +28,7 @@ export class UsersService {
 
         try {
             const resizedBuffer = await sharp(file)
-                .resize(50, 50)
+                .resize(500, 500)
                 .toFormat('jpeg')
                 .toBuffer();
 
