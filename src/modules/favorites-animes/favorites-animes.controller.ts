@@ -11,15 +11,15 @@ export class FavoritesAnimesController {
     @Param('id') animeId: number,
     @Req() req: Request
   ) {
-    const accessToken = req.cookies['x_access_token'];
-    return this.favoritesAnimesService.create(animeId, accessToken);
+    const userId = req.cookies['user_id'];
+    return this.favoritesAnimesService.create(animeId, userId);
   }
 
   @Get()
   findAll(
     @Req() req: Request
   ) {
-    const accessToken = req.cookies['x_access_token'];
-    return this.favoritesAnimesService.findAll(accessToken);
+    const userId = req.cookies['user_id'];
+    return this.favoritesAnimesService.findAll(userId);
   }
 }

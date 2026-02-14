@@ -56,10 +56,11 @@ export class UserEntity {
     @Column({ default: false })
     isEmailVerified: boolean;
 
-    @Column({ type: 'varchar', length: 255, nullable: true })
     @Exclude()
+    @Column({ type: 'varchar', length: 255, nullable: true })
     verificationToken: string | null;
 
+    @Exclude()
     @Column({ type: 'timestamp', nullable: true })
     tokenExpiry: Date | null;
 
@@ -78,9 +79,11 @@ export class UserEntity {
     @OneToMany('FavoritesAnimeEntity', 'user')
     favoriteAnimes: any[];
 
+    @Exclude()
     @Column({ type: 'varchar', length: 255, nullable: true })
     lastUserAgent: string;
 
+    @Exclude()
     @Column({ type: 'varchar', length: 255, nullable: true })
     lastIpAddress: string;
 }

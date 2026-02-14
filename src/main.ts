@@ -5,11 +5,18 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import "reflect-metadata";
 import cookieParser from 'cookie-parser';
 import { LogPerformanceInterceptor } from './interceptors/performance.interceptor';
+import { join } from 'path/win32';
+import { NestExpressApplication } from '@nestjs/platform-express/interfaces/nest-express-application.interface';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const logger = new Logger('Bootstrap');
+
+    app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+      prefix: '/uploads/',
+    });
+
   app.enableCors(
     {
       origin: 'http://localhost:4200',

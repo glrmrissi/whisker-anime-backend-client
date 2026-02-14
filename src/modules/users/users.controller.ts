@@ -1,9 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { Express } from 'express';
 import { UsersService } from './users.service';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs';
+import type { Express } from 'express';
+import type { Request } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -16,8 +17,11 @@ export class UsersController {
     @Post('upload-avatar')
     @HttpCode(HttpStatus.OK)
     @UseInterceptors(FileInterceptor('file'))
-    async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Body() body: { userId: string }) {
-        const resizedBuffer = await this.userService.updateAvatar(body.userId, file.buffer);
+    async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+        if(!req.cookies['user_id']) {
+            throw new BadRequestException('User id must be provide on cookie')
+        }        
+        const resizedBuffer = await this.userService.updateAvatar(req.cookies['user_id'], file.buffer);
         return { message: 'Avatar updated successfully', avatar: resizedBuffer };
     }
 
@@ -29,12 +33,12 @@ export class UsersController {
         return this.userService.updateBio(userId, bio);
     }
 
-    @Get('/:id')
+    @Get()
     @HttpCode(HttpStatus.OK)
-    getUser(@Param('id') id: string) {
+    async getUser(@Req() req: Request) {
         const query = new GetUserDto();
-        query.id = id;
-        return this.queryBus.execute(query);
+        query.id = req.cookies['user_id'];
+        return await this.queryBus.execute(query);
     }
 
     @Get('user-session/:id')
