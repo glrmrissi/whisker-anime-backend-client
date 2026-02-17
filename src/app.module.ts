@@ -10,13 +10,15 @@ import { AuthGuard } from './guards/auth.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './shared/entities/UserEntity';
-import { FavoritesAnimeEntity } from './shared/entities/FavoritesAnime.entity';
+import { FavoritesAnimeEntity } from './shared/entities/FavoritesAnimeEntity';
 import { UsersModule } from './modules/users/users.module';
 import { NotifierModule } from './modules/notifier/notifier.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { FavoritesAnimesModule } from './modules/favorites-animes/favorites-animes.module';
 import { CronJobModule } from './modules/cron-jobs/cron-job.module';
+import { CommentsModule } from './modules/comments/comments.module';
+import { CommentsEntity } from './shared/entities/CommentsEntity';
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import { CronJobModule } from './modules/cron-jobs/cron-job.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [UserEntity, FavoritesAnimeEntity],
+      entities: [UserEntity, FavoritesAnimeEntity, CommentsEntity],
       //synchronize: true,
     }),
     ConfigModule.forRoot({
@@ -65,7 +67,8 @@ import { CronJobModule } from './modules/cron-jobs/cron-job.module';
     UsersModule,
     NotifierModule,
     FavoritesAnimesModule,
-    CronJobModule
+    CronJobModule,
+    CommentsModule
   ],
   controllers: [AppController, KitsuApiController],
   providers: [
