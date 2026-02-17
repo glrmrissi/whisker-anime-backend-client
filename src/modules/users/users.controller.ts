@@ -28,8 +28,6 @@ export class UsersController {
     @Post('update-bio')
     @HttpCode(HttpStatus.OK)
     async updateBio(@Body('userId') userId: string, @Body('bio') bio: string) {
-        console.log('Updating bio for user:', userId);
-        console.log('New bio:', bio);
         return this.userService.updateBio(userId, bio);
     }
 
@@ -41,9 +39,16 @@ export class UsersController {
         return await this.queryBus.execute(query);
     }
 
-    @Get('user-session/:id')
+    @Get('user-session')
     @HttpCode(HttpStatus.OK)
-    getUserSession(@Param('id') id: string) {
+    getUserSession(@Req() req: Request) {
+        const id = req.cookies['user_id']
         return this.userService.getUserSessionUpdate(id);
+    }
+
+    @Post('edit')
+    async handlingEdit(@Req() req: Request) {
+        const id = req.cookies['user_id']
+        return "his.userService.handlingModifyUser(id)"
     }
 }

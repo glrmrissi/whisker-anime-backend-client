@@ -14,4 +14,7 @@ export class FavoritesAnimeEntity {
 
     @Column()
     animeId: number;
+
+    @Column()
+    commentsId: number;
 }

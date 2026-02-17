@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { FavoritesAnimesService } from './favorites-animes.service';
 import { FavoritesAnimesController } from './favorites-animes.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { FavoritesAnimeEntity } from 'src/shared/entities/FavoritesAnime.entity';
+import { FavoritesAnimeEntity } from 'src/shared/entities/FavoritesAnimeEntity';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({

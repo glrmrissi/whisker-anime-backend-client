@@ -87,4 +87,22 @@ export class UsersService {
         }
         return user;
     }
+
+    async handlingModifyUser(userId: string, object: Object) {
+
+        // Fazer a logica
+        await this.getUserByUuid(userId)
+
+        this.checkWhatFieldsChanges(userId, object)
+    }
+
+    async checkWhatFieldsChanges(userId: string, object: Object): Promise<UserEntity> {
+        const user = this.getUserByUuid(userId)
+        if(!user) {
+            throw new NotFoundException('User not found')
+        }
+
+        return user
+    }
 }
+

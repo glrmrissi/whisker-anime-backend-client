@@ -1,8 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
-import { GetUserDto } from 'src/auth/querys/get-user.handler';
-import { FavoritesAnimeEntity } from 'src/shared/entities/FavoritesAnime.entity';
-import { UserEntity } from 'src/shared/entities/UserEntity';
+import { FavoritesAnimeEntity } from 'src/shared/entities/FavoritesAnimeEntity';
 import { EntityManager } from 'typeorm';
 
 @Injectable()

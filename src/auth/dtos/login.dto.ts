@@ -1,9 +1,9 @@
-import { Exclude } from 'class-transformer';
 import { IsEmail, IsString, IsNotEmpty, MinLength, IsStrongPassword } from 'class-validator';
 
 export class LoginDto {
   @IsNotEmpty()
   @IsString()
+  @IsEmail()
   username: string;
 
   @IsNotEmpty()
