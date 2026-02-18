@@ -58,7 +58,7 @@ import { CommentsEntity } from './shared/entities/CommentsEntity';
       throttlers: [
         {
           ttl: 60000,
-          limit: 10,
+          limit: 150,
         },
       ],
     }),
