@@ -2,9 +2,11 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { TokenStorage } from '../auth/token.storage';
 
+
 @Injectable()
 export class KitsuApiService {
   private readonly baseUrl = 'https://kitsu.io/api/edge';
+  
 
   constructor(
     private authService: AuthService,
@@ -54,8 +56,6 @@ export class KitsuApiService {
       });
     }
 
-    console.log('[KITSU-API] GET', url.toString());
-
     try {
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -96,7 +96,7 @@ export class KitsuApiService {
 
   async getTrendingAnime(limit: number): Promise<any> {
     return this.get('/trending/anime', {
-      'limit': limit,
+      'limit': limit
     });
   }
 
@@ -119,10 +119,12 @@ export class KitsuApiService {
     });
   }
 
-  async getAnimeWithPagination(limit: number, offset: number, nsfw?: string): Promise<any> {
+  async getAnimeWithPagination(limit: number, offset: number, sort?: string, subtype?: string): Promise<any> {
     const params: Record<string, any> = {
       'page[limit]': limit,
       'page[offset]': offset,
+      'sort': sort,
+      'filter[subtype]': subtype
     };
 
     return this.get('/anime', params);

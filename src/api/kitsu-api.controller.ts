@@ -21,12 +21,13 @@ export class KitsuApiController {
     async getAnimeList(
         @Query('page') page?: string,
         @Query('limit') limit?: string,
-        @Query('nsfw') nsfw?: string,
+        @Query('sort') sort?: string,
+        @Query('subtype') subtype?: string
     ) {
         const finalPage = page ? parseInt(page, 10) : 1;
         const finalLimit = limit ? parseInt(limit, 10) : 10;
         const offset = (finalPage - 1) * finalLimit;
-        return this.kitsuApiService.getAnimeWithPagination(finalLimit, offset, nsfw);
+        return this.kitsuApiService.getAnimeWithPagination(finalLimit, offset, sort, subtype);
     }
 
     @ApiGetAnimeSearchByTitle()
