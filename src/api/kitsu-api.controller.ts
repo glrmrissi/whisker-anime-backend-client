@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
 import { KitsuApiService } from "./kitsu-api.service";
 import { ApiGetAnimeSearchByTitle } from "./docs/ApiGetAnimeSearchByTitle";
+import { Public } from "src/decorators/set-meta-data.decorator";
 
 @Controller('kitsu-api')
 export class KitsuApiController {
@@ -39,9 +40,9 @@ export class KitsuApiController {
         const finalLimit = limit || 10;
         return this.kitsuApiService.searchAnime(title, finalLimit);
     }
-
+    @Public()
     @Get('anime/:id')
-    async getAnime(@Param('id', ParseIntPipe) id: number) {
-        return this.kitsuApiService.getAnime(id);
+    async getAnime(@Param('id', ParseIntPipe) id: number, @Query('include') include: string) {
+        return this.kitsuApiService.getAnime(id, include);
     }
 }
