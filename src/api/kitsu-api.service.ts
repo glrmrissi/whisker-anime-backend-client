@@ -56,6 +56,8 @@ export class KitsuApiService {
       });
     }
 
+    console.log(url)
+
     try {
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -77,12 +79,11 @@ export class KitsuApiService {
     }
   }
 
-  async getAnime(id: number, include?: string): Promise<any> {
-    const params: Record<string, any> = {};
-    if (include) {
-      params['include'] = include;
-    }
-
+  async getAnime(id: number, include: string): Promise<any> {
+    const params: Record<string, any> = {
+      'include': include
+    };
+    console.log(params)
     return this.get(`/anime/${id}`, params);
   }
 
