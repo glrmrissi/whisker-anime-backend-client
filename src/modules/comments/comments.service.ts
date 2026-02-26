@@ -74,7 +74,6 @@ export class CommentsService {
         return true;
     }
 
-
     async likeComment(commentId: number, userId: string) {
         await this.entityManager.transaction(async (eM) => {
             try {
@@ -97,7 +96,7 @@ export class CommentsService {
     }
 
     async getLikesByCommentId(commentId: number) {
-        await this.entityManager.query(`
+        return await this.entityManager.query(`
             SELECT COUNT(*) as likes_count FROM comment_user_likes 
             WHERE "commentId" = $1;
             `, [commentId]);

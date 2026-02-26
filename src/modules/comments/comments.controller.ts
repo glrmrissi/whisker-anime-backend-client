@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Patch, Post, Req } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from "@nestjs/common";
 import type { Request } from 'express'
 import { CommentsService } from "./comments.service";
 import { CommentsDto } from "./dtos/comments.dto";
+import { Public } from "src/decorators/set-meta-data.decorator";
 
 @Controller('comments')
 export class CommentsController {
@@ -29,5 +30,10 @@ export class CommentsController {
     async likeComment(@Req() req: Request, @Body('commentId') commentId: number) {
         const userId = req.cookies['user_id'];
         await this.commentsService.likeComment(Number(commentId), userId);
+    }
+
+    @Get('count-likes')
+    async getLikesOfComments(@Query('commentId', new ParseIntPipe()) commentId: number) {
+        return await this.commentsService.getLikesByCommentId(commentId);
     }
 }
