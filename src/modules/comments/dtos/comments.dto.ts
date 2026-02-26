@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CommentsDto {
     @IsNumber()
@@ -7,8 +7,10 @@ export class CommentsDto {
     @IsString()
     content: string;
 
-    @IsString()
-    tags: string[];
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    tags?: string[];
 
     @IsOptional()
     parentId?: number;

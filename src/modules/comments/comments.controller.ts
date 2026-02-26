@@ -17,13 +17,13 @@ export class CommentsController {
     }
 
     @Get()
-    async getComments(@Body() animeId: number) {
-        await this.commentsService.getCommentsByAnimeId(Number(animeId));
+    async getComments(@Query('animeId') animeId: number) {
+        return await this.commentsService.getCommentsByAnimeId(Number(animeId));
     }
-
+    
     @Get('replies')
     async getReplies(@Body('commentId') commentId: number) {
-        await this.commentsService.getRepliesOfComment(Number(commentId));
+        return await this.commentsService.getRepliesOfComment(Number(commentId));
     }
 
     @Patch('like')

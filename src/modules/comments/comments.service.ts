@@ -27,7 +27,7 @@ export class CommentsService {
 
     async getCommentsById(commentId: number) {
         try {
-            await this.entityManager.query(`
+            return await this.entityManager.query(`
                     SELECT * FROM public.comments
                     WHERE "id" = $1 AND "deletedAt" IS NULL
                     `, [commentId])
@@ -38,10 +38,10 @@ export class CommentsService {
 
     async getCommentsByAnimeId(animeId: number) {
         try {
-            await this.entityManager.query(`
+            return await this.entityManager.query(`
                 SELECT * FROM comments
-                    WHERE "animeId" = $1 AND "parentId" IS NULL AND "deletedAt" IS NULL
-                `[animeId])
+                    WHERE "animeId" = $1 AND "deletedAt" IS NULL
+                `, [animeId])
         } catch (error) {
             throw new NotFoundException("Not found comments of this anime")
         }
@@ -49,10 +49,10 @@ export class CommentsService {
 
     async getRepliesOfComment(commentId: number) {
         try {
-            await this.entityManager.query(`
+            return await this.entityManager.query(`
             SELECT * FROM comments
             WHERE "parentId"  = $1 AND "deletedAt" IS NULL
-            `[commentId])
+            `, [commentId])
         } catch (error) {
             throw new NotFoundException("Not found replies")
         }
