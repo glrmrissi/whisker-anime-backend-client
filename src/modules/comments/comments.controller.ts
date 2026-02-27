@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from "@nestjs/common";
+import { Body, Controller, Get, ParseIntPipe, Patch, Post, Query, Req } from "@nestjs/common";
 import type { Request } from 'express'
 import { CommentsService } from "./comments.service";
 import { CommentsDto } from "./dtos/comments.dto";
-import { Public } from "src/decorators/set-meta-data.decorator";
+import { Throttle } from "@nestjs/throttler";
 
 @Controller('comments')
 export class CommentsController {
@@ -11,18 +11,24 @@ export class CommentsController {
     ) {}
 
     @Post()
+    @Throttle({ default: { limit: 3, ttl: 60000 } })
     async comment(@Req() req: Request, @Body() commentsDto: CommentsDto) {
         const userId = req.cookies['user_id'];
-        await this.commentsService.commitComment(String(userId), commentsDto);
+        return await this.commentsService.commitComment(String(userId), commentsDto);
     }
 
     @Get()
     async getComments(@Query('animeId') animeId: number) {
         return await this.commentsService.getCommentsByAnimeId(Number(animeId));
     }
+
+    @Get('count-replies')
+    async getCountReplysOfComments(@Query('commentId') commentId: number) {
+        return await this.commentsService.getCountReplysOfComments(Number(commentId));
+    }
     
     @Get('replies')
-    async getReplies(@Body('commentId') commentId: number) {
+    async getReplies(@Query('commentId') commentId: number) {
         return await this.commentsService.getRepliesOfComment(Number(commentId));
     }
 

@@ -15,14 +15,17 @@ export class CommentsService {
     ) { }
 
     async commitComment(userId: string, commentsDto: CommentsDto) {
-        await this.entityManager.transaction(async (eM) => {
+        return await this.entityManager.transaction(async (eM) => {
             try {
-                const comment = await eM.create(CommentsEntity, { userId, ...commentsDto })
-                await eM.save(comment)
+                const comment = eM.create(CommentsEntity, { userId, ...commentsDto });
+
+                const savedComment = await eM.save(comment);
+
+                return savedComment; 
             } catch (error) {
-                throw new Error("Failed to save comment")
+                throw new Error("Failed to save comment");
             }
-        })
+        });
     }
 
     async getCommentsById(commentId: number) {
@@ -40,10 +43,21 @@ export class CommentsService {
         try {
             return await this.entityManager.query(`
                 SELECT * FROM comments
-                    WHERE "animeId" = $1 AND "deletedAt" IS NULL
+                    WHERE "animeId" = $1 AND "parentId" IS NULL AND "deletedAt" IS NULL
                 `, [animeId])
         } catch (error) {
             throw new NotFoundException("Not found comments of this anime")
+        }
+    }
+
+    async getCountReplysOfComments(commentId: number) {
+        try {
+            return await this.entityManager.query(`
+                SELECT COUNT(*) as replies_count FROM comments
+                    WHERE "parentId" = $1 AND "parentId" IS NOT NULL AND "deletedAt" IS NULL
+                `, [commentId])
+        } catch (error) {
+            throw new NotFoundException("Not found replies of this comment")
         }
     }
 
@@ -51,7 +65,7 @@ export class CommentsService {
         try {
             return await this.entityManager.query(`
             SELECT * FROM comments
-            WHERE "parentId"  = $1 AND "deletedAt" IS NULL
+            WHERE "parentId" = $1 AND "deletedAt" IS NULL
             `, [commentId])
         } catch (error) {
             throw new NotFoundException("Not found replies")
