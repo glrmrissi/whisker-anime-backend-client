@@ -1,18 +1,20 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/shared/entities/UserEntity';
-import { Repository } from 'typeorm';
+import { EntityManager, IsNull, Repository } from 'typeorm';
 import sharp from 'sharp';
 import fs from 'fs';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs/dist/query-bus';
+import { UserAvatarResponse } from './dto/user-avatar-response';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(UserEntity)
         private readonly userRepository: Repository<UserEntity>,
-        private readonly queryBus: QueryBus
+        private readonly queryBus: QueryBus,
+        private readonly entityManager: EntityManager
     ) { }
 
     async updateAvatar(userId: string, file: Buffer): Promise<Buffer> {
@@ -98,11 +100,18 @@ export class UsersService {
 
     async checkWhatFieldsChanges(userId: string, object: Object): Promise<UserEntity> {
         const user = this.getUserByUuid(userId)
-        if(!user) {
+        if (!user) {
             throw new NotFoundException('User not found')
         }
 
         return user
+    }
+
+    async getAvatarAndName(userId: string) {
+        return await this.entityManager.query(`
+                    SELECT "nickName", "avatarUrl" FROM public.users
+                    WHERE "id" = $1 AND "deletedAt" IS NULL
+                    `, [userId])
     }
 }
 

@@ -1,10 +1,11 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs';
 import type { Express } from 'express';
 import type { Request } from 'express';
+import { Public } from 'src/decorators/set-meta-data.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -42,8 +43,15 @@ export class UsersController {
     @Get('user-session')
     @HttpCode(HttpStatus.OK)
     getUserSession(@Req() req: Request) {
-        const id = req.cookies['user_id']
+        const id = req.cookies['user_id'];
         return this.userService.getUserSessionUpdate(id);
+    }
+
+    @Get('avatar-name')
+    @Public()
+    @HttpCode(HttpStatus.OK)
+    getAvatarAndName(@Query('userId') userId: string) {
+        return this.userService.getAvatarAndName(userId);
     }
 
     @Post('edit')
