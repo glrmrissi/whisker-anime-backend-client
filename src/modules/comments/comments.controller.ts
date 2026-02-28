@@ -18,8 +18,9 @@ export class CommentsController {
     }
 
     @Get()
-    async getComments(@Query('animeId') animeId: number) {
-        return await this.commentsService.getCommentsByAnimeId(Number(animeId));
+    async getComments(@Req() req: Request, @Query('animeId') animeId: number) {
+        const userId = req.cookies['user_id'];
+        return await this.commentsService.getCommentsByAnimeId(Number(animeId), userId);
     }
 
     @Get('count-replies')
@@ -35,7 +36,7 @@ export class CommentsController {
     @Patch('like')
     async likeComment(@Req() req: Request, @Body('commentId') commentId: number) {
         const userId = req.cookies['user_id'];
-        await this.commentsService.likeComment(Number(commentId), userId);
+        return await this.commentsService.likeComment(Number(commentId), userId);
     }
 
     @Get('count-likes')
