@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Req, Request, Res, UseGuards } from "@nestjs/common";
 import type { Response } from "express";
 import { UserAuthService } from "./user-auth.service";
 import { LoginDto } from "./dtos/login.dto";
@@ -76,7 +76,7 @@ export class UserAuthController {
 
     @HttpCode(HttpStatus.OK)
     @Public()
-    @Post('new-password')
+    @Patch('new-password')
     async newPassword(@Body('username') username: string, @Body('newPassword') newPassword: string, @Body('code') code: string) {
         await this.userAuthService.newPassword(username, newPassword, code);
         return { message: 'Password updated successfully' };
