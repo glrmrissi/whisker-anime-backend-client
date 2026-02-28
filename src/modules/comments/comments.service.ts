@@ -21,7 +21,7 @@ export class CommentsService {
 
                 const savedComment = await eM.save(comment);
 
-                return savedComment; 
+                return savedComment;
             } catch (error) {
                 throw new Error("Failed to save comment");
             }
@@ -39,15 +39,18 @@ export class CommentsService {
         }
     }
 
-    async getCommentsByAnimeId(animeId: number) {
-        try {
-            return await this.entityManager.query(`
-                SELECT * FROM comments
-                    WHERE "animeId" = $1 AND "parentId" IS NULL AND "deletedAt" IS NULL
-                `, [animeId])
-        } catch (error) {
-            throw new NotFoundException("Not found comments of this anime")
-        }
+    async getCommentsByAnimeId(animeId: number, userId: string): Promise<any[]> {
+        return await this.entityManager.query(`
+        SELECT c.*, 
+        (SELECT COUNT(*) FROM comments r WHERE r."parentId" = c.id AND r."deletedAt" IS NULL) as "replyCount",
+        (SELECT COUNT(*) FROM comment_user_likes cul WHERE cul."commentId" = c.id) as "likeCount",
+        EXISTS (
+            SELECT 1 FROM comment_user_likes cul 
+            WHERE cul."commentId" = c.id AND cul."userId" = $2
+        ) as "isLiked"
+        FROM comments c
+        WHERE c."animeId" = $1 AND c."parentId" IS NULL AND c."deletedAt" IS NULL
+    `, [animeId, userId]);
     }
 
     async getCountReplysOfComments(commentId: number) {
@@ -89,24 +92,32 @@ export class CommentsService {
     }
 
     async likeComment(commentId: number, userId: string) {
-        await this.entityManager.transaction(async (eM) => {
-            try {
-                const query = new GetUserDto();
-                query.id = userId;
-                await this.queryBus.execute(query);
+        return await this.entityManager.transaction(async (eM) => {
+            const existingLike = await eM.query(`
+            SELECT id FROM comment_user_likes 
+            WHERE "userId" = $1 AND "commentId" = $2
+        `, [userId, commentId]);
 
-                await this.getCommentsById(commentId);
+            if (existingLike.length > 0) {
+                await eM.query(`
+                DELETE FROM comment_user_likes 
+                WHERE "userId" = $1 AND "commentId" = $2
+            `, [userId, commentId]);
 
-                await this.verifyIfExistCommentWithThisUserIdAndCommentId(userId, commentId);
-
-                return await eM.query(`
-                    INSERT INTO comment_user_likes ("commentId", "userId")
-                    VALUES($1, $2)
-                    `, [commentId, userId]);
-            } catch (e) {
-                throw new Error(e);
+                return { action: 'unliked' };
             }
-        })
+
+            try {
+                await eM.query(`
+                INSERT INTO comment_user_likes ("commentId", "userId")
+                VALUES($1, $2)
+            `, [commentId, userId]);
+
+                return { action: 'liked' };
+            } catch (e) {
+                throw new Error("Erro ao inserir like");
+            }
+        });
     }
 
     async getLikesByCommentId(commentId: number) {
