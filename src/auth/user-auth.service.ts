@@ -217,16 +217,24 @@ export class UserAuthService {
         return true;
     }
 
-    private async verifyIfUserAgentIsTheSameOfLastLogin(userAgent: string, userId: string): Promise<boolean> {
+    private async verifyIfUserAgentIsTheSameOfLastLogin(userAgent: string, userId: string): Promise<any> {
         try {
             const user = await this.userRepository.findOne({ where: { id: userId } });
             if (!user) {
                 throw new BadRequestException('User not found');
             }
+            
+            if(user.lastUserAgent != userAgent) {
+                this.notifierService.notify({
+                    subject: 'You logged in a new Browser',
+                    message: `Check if you make a login into ${userAgent}`,
+                    recipient: user.username
+                }, {adminEmails: true, clientEmail: user.username});
             return user.lastUserAgent === userAgent;
+            }
         }
         catch (error) {
-            throw new BadRequestException('Failed to verify user agent', error.message);
+            throw new Error('User agent function error');
         }
     }
 
