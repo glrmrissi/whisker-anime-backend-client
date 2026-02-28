@@ -113,5 +113,12 @@ export class UsersService {
                     WHERE "id" = $1 AND "deletedAt" IS NULL
                     `, [userId])
     }
+
+    async getAvatar(userId: string) {
+        return await this.entityManager.query(`
+                    SELECT "avatarUrl" FROM public.users
+                    WHERE "id" = $1 AND "deletedAt" IS NULL
+                    `, [userId])
+    }
 }
 

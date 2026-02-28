@@ -19,9 +19,9 @@ export class UsersController {
     @HttpCode(HttpStatus.OK)
     @UseInterceptors(FileInterceptor('file'))
     async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
-        if(!req.cookies['user_id']) {
+        if (!req.cookies['user_id']) {
             throw new BadRequestException('User id must be provide on cookie')
-        }        
+        }
         const resizedBuffer = await this.userService.updateAvatar(req.cookies['user_id'], file.buffer);
         return { message: 'Avatar updated successfully', avatar: resizedBuffer };
     }
@@ -48,10 +48,16 @@ export class UsersController {
     }
 
     @Get('avatar-name')
-    @Public()
     @HttpCode(HttpStatus.OK)
-    getAvatarAndName(@Query('userId') userId: string) {
-        return this.userService.getAvatarAndName(userId);
+    async getAvatarAndName(@Query('userId') userId: string) {
+        return await this.userService.getAvatarAndName(userId);
+    }
+
+    @Get('avatar')
+    @HttpCode(HttpStatus.OK)
+    async getAvatar(@Req() req: Request) {
+        const id = req.cookies['user_id'];
+        return await this.userService.getAvatar(id);
     }
 
     @Post('edit')
