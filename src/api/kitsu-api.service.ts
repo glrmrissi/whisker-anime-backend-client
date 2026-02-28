@@ -56,8 +56,6 @@ export class KitsuApiService {
       });
     }
 
-    console.log(url)
-
     try {
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -83,7 +81,6 @@ export class KitsuApiService {
     const params: Record<string, any> = {
       'include': include
     };
-    console.log(params)
     return this.get(`/anime/${id}`, params);
   }
 
