@@ -5,7 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import "reflect-metadata";
 import cookieParser from 'cookie-parser';
 import { LogPerformanceInterceptor } from './interceptors/performance.interceptor';
-import { join } from 'path/win32';
+import { join, normalize } from 'path/win32';
 import { NestExpressApplication } from '@nestjs/platform-express/interfaces/nest-express-application.interface';
 
 async function bootstrap() {
@@ -13,10 +13,15 @@ async function bootstrap() {
 
   const logger = new Logger('Bootstrap');
 
-    app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-      prefix: '/uploads/',
-    });
+  let uploadPath = normalize(join(process.cwd(), 'uploads'));
 
+  if (process.platform !== 'win32') {
+    uploadPath = uploadPath.replace(/\\/g, '/');
+  }
+
+  app.useStaticAssets(uploadPath, {
+    prefix: '/uploads/',
+  });
   app.enableCors(
     {
       origin: 'http://localhost:4200',
