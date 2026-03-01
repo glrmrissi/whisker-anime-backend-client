@@ -32,10 +32,11 @@ export class KitsuApiController {
     }
 
     @ApiGetAnimeSearchByTitle()
-    @Get('anime/search/:title')
+    @Get('anime/search')
+    @Public()
     async searchAnime(
-        @Param('title') title: string,
-        @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+        @Query('title') title: string,
+        @Query('limit') limit?: number,
     ) {
         const finalLimit = limit || 10;
         return this.kitsuApiService.searchAnime(title, finalLimit);
