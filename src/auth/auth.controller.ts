@@ -1,4 +1,12 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  BadRequestException,
+  Get,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { TokenStorage } from './token.storage';
 import { LoginDto } from './dtos/login.dto';
@@ -39,7 +47,9 @@ export class AuthController {
    */
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<TokenResponseDto> {
+  async refreshToken(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<TokenResponseDto> {
     try {
       const token = await this.authService.refreshToken(refreshTokenDto);
       this.tokenStorage.saveToken(token);
@@ -67,4 +77,3 @@ export class AuthController {
     return { message: 'Logged out successfully' };
   }
 }
-

@@ -7,8 +7,8 @@ import { EntityManager } from 'typeorm';
 export class FavoritesAnimesService {
   constructor(
     private readonly entityManager: EntityManager,
-    private readonly queryBus: QueryBus
-  ) { }
+    private readonly queryBus: QueryBus,
+  ) {}
 
   async create(animeId: number, userId: string) {
     const isFavorite = await this.verifyIfExistsFavoriteAnime(userId, animeId);
@@ -17,29 +17,36 @@ export class FavoritesAnimesService {
       throw new ConflictException('Anime is already in favorites');
     }
 
-    return this.entityManager.transaction(async transactionalEntityManager => {
-      return await transactionalEntityManager.save(FavoritesAnimeEntity, {
-        animeId: animeId,
-        userId: userId
-      });
-    });
+    return this.entityManager.transaction(
+      async (transactionalEntityManager) => {
+        return await transactionalEntityManager.save(FavoritesAnimeEntity, {
+          animeId: animeId,
+          userId: userId,
+        });
+      },
+    );
   }
 
-  private async verifyIfExistsFavoriteAnime(userId: string, animeId: number): Promise<boolean> {
-    const favoriteAnime = await this.entityManager.findOne(FavoritesAnimeEntity, {
-      where: { userId: userId, animeId: animeId }
-    });
+  private async verifyIfExistsFavoriteAnime(
+    userId: string,
+    animeId: number,
+  ): Promise<boolean> {
+    const favoriteAnime = await this.entityManager.findOne(
+      FavoritesAnimeEntity,
+      {
+        where: { userId: userId, animeId: animeId },
+      },
+    );
     return !!favoriteAnime;
   }
 
   async findAll(userId: string) {
-
     if (!userId) {
       throw new Error('User ID is required');
     }
 
     return this.entityManager.find(FavoritesAnimeEntity, {
-      where: { userId: userId }
+      where: { userId: userId },
     });
   }
 }

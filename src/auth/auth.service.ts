@@ -11,9 +11,7 @@ export class AuthService {
   private readonly clientId: string;
   private readonly clientSecret: string;
 
-  constructor(
-    private configService: ConfigService
-  ) {
+  constructor(private configService: ConfigService) {
     this.kitsuOAuthUrl = this.configService.get<string>(
       'KITSU_API_URL',
       'https://kitsu.io/api/oauth/token',
@@ -21,7 +19,6 @@ export class AuthService {
     this.clientId = this.configService.get<string>('CLIENT_ID', '');
     this.clientSecret = this.configService.get<string>('CLIENT_SECRET', '');
   }
-
 
   async login(loginDto: LoginDto): Promise<TokenResponseDto> {
     const { username, password } = loginDto;
@@ -67,7 +64,9 @@ export class AuthService {
     }
   }
 
-  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<TokenResponseDto> {
+  async refreshToken(
+    refreshTokenDto: RefreshTokenDto,
+  ): Promise<TokenResponseDto> {
     const { refresh_token } = refreshTokenDto;
 
     const body = new URLSearchParams();
@@ -93,7 +92,8 @@ export class AuthService {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.error || `OAuth token refresh failed: ${response.statusText}`,
+          errorData.error ||
+            `OAuth token refresh failed: ${response.statusText}`,
         );
       }
 

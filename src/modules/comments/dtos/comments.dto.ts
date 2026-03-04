@@ -1,17 +1,17 @@
-import { IsArray, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CommentsDto {
-    @IsNumber()
-    animeId: number;
+  @IsNumber()
+  animeId: number;
 
-    @IsString()
-    content: string;
+  @IsString()
+  content: string;
 
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    tags?: string[];
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 
-    @IsOptional()
-    parentId?: number;
+  @IsOptional()
+  parentId?: number;
 }

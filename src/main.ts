@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import "reflect-metadata";
+import 'reflect-metadata';
 import cookieParser from 'cookie-parser';
 import { LogPerformanceInterceptor } from './interceptors/performance.interceptor';
 import { join, normalize } from 'path/win32';
@@ -22,14 +22,12 @@ async function bootstrap() {
   app.useStaticAssets(uploadPath, {
     prefix: '/uploads/',
   });
-  app.enableCors(
-    {
-      origin: 'http://localhost:4200',
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      credentials: true,
-      allowedHeaders: 'Content-Type, Accept, Authorization, x_access_token',
-    }
-  );
+
+  app.enableCors({
+    origin: 'http://localhost:4200',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
 
   app.use(cookieParser());
 
@@ -40,8 +38,8 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
-  app.useGlobalPipes(new ValidationPipe({ transform: true }))
-  app.useGlobalInterceptors(new LogPerformanceInterceptor)
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalInterceptors(new LogPerformanceInterceptor());
   SwaggerModule.setup('api-docs', app, document);
 
   await app.listen(process.env.PORT ?? 3001);

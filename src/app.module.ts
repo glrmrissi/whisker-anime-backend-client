@@ -51,7 +51,7 @@ import { CommentsEntity } from './shared/entities/CommentsEntity';
         backoff: {
           type: 'exponential',
           delay: 1000,
-        }
+        },
       },
     }),
     ThrottlerModule.forRoot({
@@ -68,7 +68,7 @@ import { CommentsEntity } from './shared/entities/CommentsEntity';
     NotifierModule,
     FavoritesAnimesModule,
     CronJobModule,
-    CommentsModule
+    CommentsModule,
   ],
   controllers: [AppController, KitsuApiController],
   providers: [
@@ -79,8 +79,8 @@ import { CommentsEntity } from './shared/entities/CommentsEntity';
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard
-    }
+      useClass: ThrottlerGuard,
+    },
   ],
 })
-export class AppModule { }
+export class AppModule {}

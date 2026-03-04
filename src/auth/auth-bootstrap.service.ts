@@ -26,7 +26,7 @@ export class AuthBootstrapService implements OnModuleInit {
     if (!username || !password) {
       this.logger.warn(
         'KITSU_USERNAME or KITSU_PASSWORD not configured. ' +
-        'Token generation skipped. Please set them in .env',
+          'Token generation skipped. Please set them in .env',
       );
       return;
     }

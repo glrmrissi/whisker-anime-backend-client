@@ -1,9 +1,8 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class Migration1770078221337 implements MigrationInterface {
-
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             ALTER TABLE "users"
             ADD COLUMN "bio" text,
             ADD COLUMN "isEmailVerified" boolean NOT NULL DEFAULT false,
@@ -14,10 +13,10 @@ export class Migration1770078221337 implements MigrationInterface {
             ADD COLUMN "twoFactorEnabled" boolean NOT NULL DEFAULT false,
             ADD COLUMN "preferredLanguage" varchar(10) DEFAULT 'en';
         `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             ALTER TABLE "users"
             DROP COLUMN "bio",
             DROP COLUMN "isEmailVerified",
@@ -28,6 +27,5 @@ export class Migration1770078221337 implements MigrationInterface {
             DROP COLUMN "twoFactorEnabled",
             DROP COLUMN "preferredLanguage";
         `);
-    }
-
+  }
 }
