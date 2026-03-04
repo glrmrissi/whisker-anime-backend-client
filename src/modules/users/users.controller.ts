@@ -23,7 +23,7 @@ export class UsersController {
             throw new BadRequestException('User id must be provide on cookie')
         }
         const resizedBuffer = await this.userService.updateAvatar(req.cookies['user_id'], file.buffer);
-        return { message: 'Avatar updated successfully', avatar: resizedBuffer };
+        return resizedBuffer;
     }
 
     @Post('update-bio')

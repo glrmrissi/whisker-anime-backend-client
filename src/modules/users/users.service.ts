@@ -6,7 +6,6 @@ import sharp from 'sharp';
 import fs from 'fs';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs/dist/query-bus';
-import { UserAvatarResponse } from './dto/user-avatar-response';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +16,7 @@ export class UsersService {
         private readonly entityManager: EntityManager
     ) { }
 
-    async updateAvatar(userId: string, file: Buffer): Promise<Buffer> {
+    async updateAvatar(userId: string, file: Buffer): Promise<object> {
         if (!file || !Buffer.isBuffer(file)) {
             throw new BadRequestException('Invalid file input');
         }
@@ -34,8 +33,7 @@ export class UsersService {
                 .toFormat('jpeg')
                 .toBuffer();
 
-            await this.saveImageOnUploadFolder(resizedBuffer, userId);
-            return resizedBuffer;
+            return await this.saveImageOnUploadFolder(resizedBuffer, userId);
         } catch (error) {
             throw new BadRequestException('Failed to process image', error.message);
         }
@@ -50,6 +48,7 @@ export class UsersService {
             await fs.promises.writeFile(`./uploads/user-profile-${userId}.jpeg`, file);
 
             await this.userRepository.update({ id: userId }, { avatarUrl: `uploads/user-profile-${userId}.jpeg` });
+            return { avatarUrl: `uploads/user-profile-${userId}.jpeg` }
         }
         catch (error) {
             throw new BadRequestException('Failed to save image', error.message);
