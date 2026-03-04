@@ -46,4 +46,4 @@ async function bootstrap() {
 
   logger.debug(`Application is running on: ${await app.getUrl()}`);
 }
-bootstrap();
+void bootstrap();

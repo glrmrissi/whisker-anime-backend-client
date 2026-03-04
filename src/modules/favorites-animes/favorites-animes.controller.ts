@@ -1,6 +1,7 @@
-import { Controller, Get, Headers, Param, Post, Req } from '@nestjs/common';
+import { Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { FavoritesAnimesService } from './favorites-animes.service';
 import type { Request } from 'express';
+import { FavoritesAnimeEntity } from 'src/shared/entities/FavoritesAnimeEntity';
 
 @Controller('favorites-animes')
 export class FavoritesAnimesController {
@@ -9,14 +10,14 @@ export class FavoritesAnimesController {
   ) {}
 
   @Post(':id')
-  create(@Param('id') animeId: number, @Req() req: Request) {
-    const userId = req.cookies['user_id'];
+  create(@Param('id') animeId: number, @Req() req: Request): Promise<object> {
+    const userId = (req.cookies['user_id'] as string | undefined) ?? 'unknown';
     return this.favoritesAnimesService.create(animeId, userId);
   }
 
   @Get()
-  findAll(@Req() req: Request) {
-    const userId = req.cookies['user_id'];
+  findAll(@Req() req: Request): Promise<FavoritesAnimeEntity[]> {
+    const userId = (req.cookies['user_id'] as string | undefined) ?? 'unknown';
     return this.favoritesAnimesService.findAll(userId);
   }
 }

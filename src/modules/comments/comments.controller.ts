@@ -20,44 +20,36 @@ export class CommentsController {
   @Post()
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   async comment(@Req() req: Request, @Body() commentsDto: CommentsDto) {
-    const userId = req.cookies['user_id'];
-    return await this.commentsService.commitComment(
-      String(userId),
-      commentsDto,
-    );
+    const userId = (req.cookies['user_id'] as string | undefined) ?? '';
+    return this.commentsService.commitComment(userId, commentsDto);
   }
 
   @Get()
   async getComments(@Req() req: Request, @Query('animeId') animeId: number) {
-    const userId = req.cookies['user_id'];
-    return await this.commentsService.getCommentsByAnimeId(
-      Number(animeId),
-      userId,
-    );
+    const userId = (req.cookies['user_id'] as string | undefined) ?? '';
+    return this.commentsService.getCommentsByAnimeId(Number(animeId), userId);
   }
 
   @Get('count-replies')
   async getCountReplysOfComments(@Query('commentId') commentId: number) {
-    return await this.commentsService.getCountReplysOfComments(
-      Number(commentId),
-    );
+    return this.commentsService.getCountReplysOfComments(Number(commentId));
   }
 
   @Get('replies')
   async getReplies(@Query('commentId') commentId: number) {
-    return await this.commentsService.getRepliesOfComment(Number(commentId));
+    return this.commentsService.getRepliesOfComment(Number(commentId));
   }
 
   @Patch('like')
   async likeComment(@Req() req: Request, @Body('commentId') commentId: number) {
-    const userId = req.cookies['user_id'];
-    return await this.commentsService.likeComment(Number(commentId), userId);
+    const userId = (req.cookies['user_id'] as string | undefined) ?? '';
+    return this.commentsService.likeComment(Number(commentId), userId);
   }
 
   @Get('count-likes')
   async getLikesOfComments(
     @Query('commentId', new ParseIntPipe()) commentId: number,
   ) {
-    return await this.commentsService.getLikesByCommentId(commentId);
+    return this.commentsService.getLikesByCommentId(commentId);
   }
 }
