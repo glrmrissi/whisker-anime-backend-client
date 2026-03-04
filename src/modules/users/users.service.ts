@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/shared/entities/UserEntity';
-import { EntityManager, IsNull, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import sharp from 'sharp';
 import fs from 'fs';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';

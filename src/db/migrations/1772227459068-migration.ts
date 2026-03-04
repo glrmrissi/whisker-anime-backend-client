@@ -7,6 +7,8 @@ export class Migration1772227459068 implements MigrationInterface {
             `);
   }
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Do nothing
+    await queryRunner.query(`
+            DROP INDEX idx_comments_parent_deleted ON comments("parentId") WHERE "deletedAt" IS NULL;
+            `);
   }
 }

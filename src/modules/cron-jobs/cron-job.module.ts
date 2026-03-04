@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ClearIpService } from './clearip.service';
-import { Cron, ScheduleModule } from '@nestjs/schedule';
+import { ScheduleModule } from '@nestjs/schedule';
 import { CronJobService } from './cron-job.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from 'src/shared/entities/UserEntity';
