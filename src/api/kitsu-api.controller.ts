@@ -6,7 +6,11 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { KitsuApiService } from './kitsu-api.service';
+import {
+  AnimeByIdType,
+  KitsuAnimeData,
+  KitsuApiService,
+} from './kitsu-api.service';
 import { ApiGetAnimeSearchByTitle } from './docs/ApiGetAnimeSearchByTitle';
 import { Public } from 'src/decorators/set-meta-data.decorator';
 
@@ -17,7 +21,7 @@ export class KitsuApiController {
   @Get('trending-anime')
   async getTrendingAnime(
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-  ) {
+  ): Promise<KitsuAnimeData> {
     const finalLimit = limit || 10;
     return this.kitsuApiService.getTrendingAnime(finalLimit);
   }
@@ -28,7 +32,7 @@ export class KitsuApiController {
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
     @Query('subtype') subtype?: string,
-  ) {
+  ): Promise<KitsuAnimeData> {
     const finalPage = page ? parseInt(page, 10) : 1;
     const finalLimit = limit ? parseInt(limit, 10) : 10;
     const offset = (finalPage - 1) * finalLimit;
@@ -46,7 +50,7 @@ export class KitsuApiController {
   async searchAnime(
     @Query('title') title: string,
     @Query('limit') limit?: number,
-  ) {
+  ): Promise<KitsuAnimeData> {
     const finalLimit = limit || 10;
     return this.kitsuApiService.searchAnime(title, finalLimit);
   }
@@ -55,7 +59,7 @@ export class KitsuApiController {
   async getAnime(
     @Param('id', ParseIntPipe) id: number,
     @Query('include') include: string,
-  ) {
+  ): Promise<AnimeByIdType> {
     return this.kitsuApiService.getAnime(id, include);
   }
 }
