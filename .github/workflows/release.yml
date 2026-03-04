@@ -31,7 +31,7 @@ jobs:
         run: npm run build
 
   release:
-    needs: check-if-everything-is-ok
+    needs: verify-backend
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
