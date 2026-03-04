@@ -11,13 +11,17 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request as ExpressRequest, Response } from 'express';
 import { UserAuthService } from './user-auth.service';
 import { LoginDto } from './dtos/login.dto';
 import { RegisterDto } from './dtos/register.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { Public } from 'src/decorators/set-meta-data.decorator';
 import { Throttle } from '@nestjs/throttler';
+
+type AuthenticatedRequest = ExpressRequest & {
+  user: unknown;
+};
 
 @Controller('user-auth')
 export class UserAuthController {
@@ -44,18 +48,20 @@ export class UserAuthController {
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
-    @Req() req: any,
+    @Req() req: ExpressRequest,
   ) {
     const tokens = await this.userAuthService.login(loginDto);
+
     try {
       await this.userAuthService.saveUserAgent(
-        req.headers['user-agent'],
+        req.headers['user-agent'] ?? 'unknown',
         tokens.userId,
-        req.ip,
+        req.ip ?? 'unknown',
       );
-    } catch (error) {
+    } catch {
       console.error('Failed to save browser fingerprint');
     }
+
     res.cookie('x_access_token', tokens.access_token, {
       httpOnly: true,
       secure: false,
@@ -74,6 +80,7 @@ export class UserAuthController {
       sameSite: 'strict',
       maxAge: 1800000,
     });
+
     return { message: 'Login successful' };
   }
 
@@ -86,7 +93,6 @@ export class UserAuthController {
   @HttpCode(HttpStatus.OK)
   @Public()
   @Post('forgot-password')
-  @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body('username') username: string) {
     await this.userAuthService.forgotPassword(username);
     return { message: 'Password reset link sent if email exists' };
@@ -106,7 +112,7 @@ export class UserAuthController {
 
   @UseGuards(AuthGuard)
   @Get('profile')
-  getProfile(@Request() req: any) {
+  getProfile(@Request() req: AuthenticatedRequest) {
     return req.user;
   }
 }

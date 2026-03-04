@@ -1,6 +1,7 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { UserEntity } from 'src/shared/entities/UserEntity';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 import { NotFoundException } from '@nestjs/common';
 
@@ -12,7 +13,7 @@ export class GetUserDto {
 export class GetUserHandler implements IQueryHandler<GetUserDto> {
   constructor(
     @InjectDataSource()
-    private readonly dataSource,
+    private readonly dataSource: DataSource,
   ) {}
 
   async execute(query: GetUserDto): Promise<UserEntity> {

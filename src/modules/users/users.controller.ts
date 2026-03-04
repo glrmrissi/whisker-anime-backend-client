@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
   Query,
   Req,
@@ -16,9 +15,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs';
-import type { Express } from 'express';
-import type { Request } from 'express';
-import { Public } from 'src/decorators/set-meta-data.decorator';
+import type { Express, Request } from 'express';
+import { UserEntity } from 'src/shared/entities/UserEntity';
 
 @Controller('users')
 export class UsersController {
@@ -34,14 +32,11 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: Request,
   ) {
-    if (!req.cookies['user_id']) {
+    const userId = req.cookies['user_id'] as string | undefined;
+    if (!userId) {
       throw new BadRequestException('User id must be provide on cookie');
     }
-    const resizedBuffer = await this.userService.updateAvatar(
-      req.cookies['user_id'],
-      file.buffer,
-    );
-    return resizedBuffer;
+    return this.userService.updateAvatar(userId, file.buffer);
   }
 
   @Post('update-bio')
@@ -52,35 +47,35 @@ export class UsersController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getUser(@Req() req: Request) {
+  async getUser(@Req() req: Request): Promise<UserEntity> {
     const query = new GetUserDto();
-    query.id = req.cookies['user_id'];
-    return await this.queryBus.execute(query);
+    query.id = (req.cookies['user_id'] as string | undefined) ?? '';
+    return this.queryBus.execute<GetUserDto, UserEntity>(query);
   }
 
   @Get('user-session')
   @HttpCode(HttpStatus.OK)
-  getUserSession(@Req() req: Request) {
-    const id = req.cookies['user_id'];
+  getUserSession(@Req() req: Request): Promise<UserEntity> {
+    const id = (req.cookies['user_id'] as string | undefined) ?? '';
     return this.userService.getUserSessionUpdate(id);
   }
 
   @Get('avatar-name')
   @HttpCode(HttpStatus.OK)
   async getAvatarAndName(@Query('userId') userId: string) {
-    return await this.userService.getAvatarAndName(userId);
+    return this.userService.getAvatarAndName(userId);
   }
 
   @Get('avatar')
   @HttpCode(HttpStatus.OK)
   async getAvatar(@Req() req: Request) {
-    const id = req.cookies['user_id'];
-    return await this.userService.getAvatar(id);
+    const id = (req.cookies['user_id'] as string | undefined) ?? '';
+    return this.userService.getAvatar(id);
   }
 
   @Post('edit')
-  async handlingEdit(@Req() req: Request) {
-    const id = req.cookies['user_id'];
-    return 'his.userService.handlingModifyUser(id)';
+  handlingEdit(@Req() req: Request): Promise<void> {
+    const id = (req.cookies['user_id'] as string | undefined) ?? '';
+    return this.userService.handlingModifyUser(id);
   }
 }

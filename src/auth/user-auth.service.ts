@@ -13,10 +13,15 @@ import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config/dist/config.service';
 import { NotifierService } from 'src/modules/notifier/notifier.service';
 
-type loginResponse = {
+type LoginResponse = {
   access_token: string;
   refresh_token: string;
   userId: string;
+};
+
+type JwtPayload = {
+  username: string;
+  password?: string;
 };
 
 interface Notification {
@@ -61,12 +66,12 @@ export class UserAuthService {
       });
       await this.userRepository.save(user);
       return { message: 'User registered successfully' };
-    } catch (error) {
-      throw new Error('Registration failed: ' + error.message);
+    } catch {
+      throw new Error('Registration failed');
     }
   }
 
-  async login(loginDto: LoginDto): Promise<loginResponse> {
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
     try {
       if (loginDto.username === undefined || loginDto.password === undefined) {
         throw new BadRequestException('Username and password are required');
@@ -77,7 +82,7 @@ export class UserAuthService {
       }
 
       return await this.verifyUser(loginDto.username, loginDto.password);
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException(
         'Login failed, maybe invalid credentials',
       );
@@ -87,17 +92,18 @@ export class UserAuthService {
   async refreshToken(refresh_token: string): Promise<{ access_token: string }> {
     try {
       await this.verifyToken(refresh_token);
-      const payload = await this.jwtService.verifyAsync(refresh_token);
+      const payload =
+        await this.jwtService.verifyAsync<JwtPayload>(refresh_token);
       const newAccessToken = await this.jwtService.signAsync({
         username: payload.username,
       });
       return { access_token: newAccessToken };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
-  async verifyUser(username: string, password: string): Promise<loginResponse> {
+  async verifyUser(username: string, password: string): Promise<LoginResponse> {
     await this.verifyIfUserExists(username);
     const pepper = this.configService.get<string>('B_CRYPT_HASH_PEPPER');
     const user = await this.userRepository.findOne({ where: { username } });
@@ -140,7 +146,7 @@ export class UserAuthService {
   }
 
   private async verifyUserByToken(token: string): Promise<UserEntity> {
-    const payload = await this.jwtService.verifyAsync(token);
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
     const user = await this.userRepository.findOne({
       where: { username: payload.username },
     });
@@ -150,13 +156,13 @@ export class UserAuthService {
     return user;
   }
 
-  async verifyToken(token: string): Promise<any> {
+  async verifyToken(token: string): Promise<JwtPayload> {
     try {
       if (!token) {
         throw new UnauthorizedException('Token is required');
       }
       await this.verifyUserByToken(token);
-      const res = await this.jwtService.decode(token);
+      const res = this.jwtService.decode<JwtPayload>(token);
       const username = res.username;
       const password = res.password;
       if (!username || !password) {
@@ -164,7 +170,7 @@ export class UserAuthService {
       }
 
       return res;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid token');
     }
   }
@@ -184,7 +190,7 @@ export class UserAuthService {
           tokenExpiry: new Date(Date.now() + 3600000),
         },
       );
-    } catch (error) {
+    } catch {
       throw new BadRequestException('Failed to set verification token');
     }
   }
@@ -199,7 +205,7 @@ export class UserAuthService {
     }
 
     if (user.username !== null) {
-      this.notifierService.notify(
+      void this.notifierService.notify(
         {
           subject: 'Password Reset Attempt',
           message: `A password reset attempt was made for your account. If this was not you, please secure your account immediately. But if this was you, please use the code ${code} to reset your password. This code will expire in 1 hour.`,
@@ -253,7 +259,7 @@ export class UserAuthService {
   private async verifyIfUserAgentIsTheSameOfLastLogin(
     userAgent: string,
     userId: string,
-  ): Promise<any> {
+  ): Promise<boolean | undefined> {
     try {
       const user = await this.userRepository.findOne({ where: { id: userId } });
       if (!user) {
@@ -261,7 +267,7 @@ export class UserAuthService {
       }
 
       if (user.lastUserAgent != userAgent) {
-        this.notifierService.notify(
+        void this.notifierService.notify(
           {
             subject: 'You logged in a new Browser',
             message: `Check if you make a login into ${userAgent}`,
@@ -271,7 +277,7 @@ export class UserAuthService {
         );
         return user.lastUserAgent === userAgent;
       }
-    } catch (error) {
+    } catch {
       throw new Error('User agent function error');
     }
   }
@@ -289,7 +295,8 @@ export class UserAuthService {
         { lastUserAgent: userAgent },
       );
     } catch (error) {
-      throw new BadRequestException('Failed to save user agent', error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException('Failed to save user agent', message);
     }
   }
 
@@ -299,10 +306,13 @@ export class UserAuthService {
       if (!user) {
         throw new BadRequestException('User not found');
       }
-      this.verifyIfIpOfUserAgentIsTheSameOfLastLogin(userId, ip);
+      await this.verifyIfIpOfUserAgentIsTheSameOfLastLogin(userId, ip);
       const hashedIp = await this.hashIp(ip);
-      this.userRepository.update({ id: userId }, { lastIpAddress: hashedIp });
-      this.notifierService.notify(
+      void this.userRepository.update(
+        { id: userId },
+        { lastIpAddress: hashedIp },
+      );
+      void this.notifierService.notify(
         {
           subject: 'New Login Detected',
           message: `A new login was detected for your account from IP address ${ip}. If this was not you, please secure your account immediately.`,
@@ -311,10 +321,8 @@ export class UserAuthService {
         { adminEmails: true, clientEmail: user.username },
       );
     } catch (error) {
-      throw new BadRequestException(
-        'Failed to save IP of user agent',
-        error.message,
-      );
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException('Failed to save IP of user agent', message);
     }
   }
 
@@ -338,9 +346,10 @@ export class UserAuthService {
       const hashedIp = await this.hashIp(ip);
       return user.lastIpAddress === hashedIp;
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       throw new BadRequestException(
         'Failed to verify IP of user agent',
-        error.message,
+        message,
       );
     }
   }

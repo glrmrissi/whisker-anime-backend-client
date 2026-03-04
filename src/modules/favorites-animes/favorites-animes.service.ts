@@ -1,16 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
 import { FavoritesAnimeEntity } from 'src/shared/entities/FavoritesAnimeEntity';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class FavoritesAnimesService {
-  constructor(
-    private readonly entityManager: EntityManager,
-    private readonly queryBus: QueryBus,
-  ) {}
+  constructor(private readonly entityManager: EntityManager) {}
 
-  async create(animeId: number, userId: string) {
+  async create(animeId: number, userId: string): Promise<object> {
     const isFavorite = await this.verifyIfExistsFavoriteAnime(userId, animeId);
 
     if (isFavorite) {
@@ -40,7 +36,7 @@ export class FavoritesAnimesService {
     return !!favoriteAnime;
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: string): Promise<FavoritesAnimeEntity[]> {
     if (!userId) {
       throw new Error('User ID is required');
     }

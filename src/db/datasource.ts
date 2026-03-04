@@ -1,11 +1,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 import { DataSource } from 'typeorm';
-import path from 'path';
-
-const __dirname = path.resolve('./');
-
-console.log('Database configuration loaded from environment variables:');
 
 const dataSource = new DataSource({
   type: 'postgres',
