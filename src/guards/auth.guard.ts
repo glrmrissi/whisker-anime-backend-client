@@ -3,51 +3,75 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt/dist/jwt.service';
+import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from 'src/decorators/set-meta-data.decorator';
-import type { Request } from 'express';
-
-type JwtPayload = { username: string };
+import { RolesEnum } from 'src/shared/enum/roles.enum';
+import { CHECK_OWNER_KEY } from 'src/decorators/ckeck-owner.decorator';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
+    if (isPublic) return true;
 
-    if (isPublic) {
-      return true;
-    }
+    const request = context.switchToHttp().getRequest();
+    const token = request.cookies?.['x_access_token'];
 
-    const request = context
-      .switchToHttp()
-      .getRequest<Request & { user?: JwtPayload }>();
-    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token not found.');
 
-    if (!token) {
-      throw new UnauthorizedException();
-    }
-
+    let payload;
     try {
-      await this.jwtService.verifyAsync<JwtPayload>(token);
-      request.user = this.jwtService.decode<JwtPayload>(token);
-      return true;
+      payload = await this.jwtService.verifyAsync(token);
+      request['user'] = payload;
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Session expired or invalid.');
     }
-  }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const token = request.cookies['x_access_token'] as string | undefined;
-    return token ?? undefined;
+    const userRoles: RolesEnum[] = Array.isArray(payload.role)
+      ? payload.role
+      : payload.role ? [payload.role] : [];
+
+    const bypassRoles = this.reflector.getAllAndOverride<RolesEnum[]>(CHECK_OWNER_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (bypassRoles) {
+      const userIdFromRoute = request.params.id;
+      const isOwner = String(payload.sub) === String(userIdFromRoute);
+      const canBypass = userRoles.some(role => bypassRoles.includes(role));
+
+      if (userIdFromRoute && !isOwner && !canBypass) {
+        throw new ForbiddenException('Access denied: This resource does not belong to you.');
+      }
+    }
+
+    const requiredRoles = this.reflector.getAllAndOverride<RolesEnum[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (requiredRoles) {
+      const hasRole = requiredRoles.some(role => userRoles.includes(role));
+      const isAdmin = [RolesEnum.ADMIN, RolesEnum.ADMIN_MASTER, RolesEnum.OWNER]
+        .some(role => userRoles.includes(role));
+
+      if (!hasRole && !isAdmin) {
+        throw new ForbiddenException('His position does not allow this action.');
+      }
+    }
+
+    return true;
   }
 }

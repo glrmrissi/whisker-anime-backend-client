@@ -17,13 +17,25 @@ import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs';
 import type { Express, Request } from 'express';
 import { UserEntity } from 'src/shared/entities/UserEntity';
+import { RolesEnum } from 'src/shared/enum/roles.enum';
+import { IsOwnerCheck } from 'src/decorators/ckeck-owner.decorator';
+import { User } from 'src/decorators/user.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly userService: UsersService,
     private readonly queryBus: QueryBus,
-  ) {}
+  ) { }
+
+  @Get('me') 
+  @HttpCode(HttpStatus.OK)
+  async getMyProfile(@User('sub') userId: string) {
+    const query = new GetUserDto();
+    query.id = userId;
+    return this.queryBus.execute(query);
+  }
 
   @Post('upload-avatar')
   @HttpCode(HttpStatus.OK)
@@ -43,14 +55,6 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   async updateBio(@Body('userId') userId: string, @Body('bio') bio: string) {
     return this.userService.updateBio(userId, bio);
-  }
-
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  async getUser(@Req() req: Request): Promise<UserEntity> {
-    const query = new GetUserDto();
-    query.id = (req.cookies['user_id'] as string | undefined) ?? '';
-    return this.queryBus.execute<GetUserDto, UserEntity>(query);
   }
 
   @Get('user-session')
@@ -74,8 +78,19 @@ export class UsersController {
   }
 
   @Post('edit')
+  @IsOwnerCheck()
   handlingEdit(@Req() req: Request): Promise<void> {
     const id = (req.cookies['user_id'] as string | undefined) ?? '';
     return this.userService.handlingModifyUser(id);
+  }
+
+  @Get(':id')
+  @Roles(RolesEnum.OWNER, RolesEnum.ADMIN_MASTER)
+  @IsOwnerCheck()
+  @HttpCode(HttpStatus.OK)
+  async getUser(@User('sub') userId: string): Promise<UserEntity> {
+    const query = new GetUserDto();
+    query.id = userId;
+    return this.queryBus.execute<GetUserDto, UserEntity>(query);
   }
 }
