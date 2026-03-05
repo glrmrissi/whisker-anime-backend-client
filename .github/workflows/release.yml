@@ -38,7 +38,7 @@ jobs:
 
   release:
     needs: verify-backend
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -67,5 +67,4 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm dlx semantic-release
