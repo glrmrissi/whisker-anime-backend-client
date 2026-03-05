@@ -7,7 +7,6 @@ import {
   HttpStatus,
   Post,
   Query,
-  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -15,7 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs';
-import type { Express, Request } from 'express';
+import type { Express } from 'express';
 import { UserEntity } from 'src/shared/entities/UserEntity';
 import { RolesEnum } from 'src/shared/enum/roles.enum';
 import { IsOwnerCheck } from 'src/decorators/ckeck-owner.decorator';
@@ -42,9 +41,8 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
+    @User('sub') userId: string,
   ) {
-    const userId = req.cookies['user_id'] as string | undefined;
     if (!userId) {
       throw new BadRequestException('User id must be provide on cookie');
     }
@@ -59,9 +57,8 @@ export class UsersController {
 
   @Get('user-session')
   @HttpCode(HttpStatus.OK)
-  getUserSession(@Req() req: Request): Promise<UserEntity> {
-    const id = (req.cookies['user_id'] as string | undefined) ?? '';
-    return this.userService.getUserSessionUpdate(id);
+  getUserSession(@User('sub') userId: string): Promise<UserEntity> {
+    return this.userService.getUserSessionUpdate(userId);
   }
 
   @Get('avatar-name')
@@ -72,16 +69,14 @@ export class UsersController {
 
   @Get('avatar')
   @HttpCode(HttpStatus.OK)
-  async getAvatar(@Req() req: Request) {
-    const id = (req.cookies['user_id'] as string | undefined) ?? '';
-    return this.userService.getAvatar(id);
+  async getAvatar(@User('sub') userId: string) {
+    return this.userService.getAvatar(userId);
   }
 
   @Post('edit')
   @IsOwnerCheck()
-  handlingEdit(@Req() req: Request): Promise<void> {
-    const id = (req.cookies['user_id'] as string | undefined) ?? '';
-    return this.userService.handlingModifyUser(id);
+  handlingEdit(@User('sub') userId: string): Promise<void> {
+    return this.userService.handlingModifyUser(userId);
   }
 
   @Get(':id')
