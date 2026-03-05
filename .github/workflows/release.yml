@@ -1,5 +1,9 @@
 name: CI/CD Pipeline
 
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '9'
+
 on:
   push:
     branches: [ main ]
@@ -18,14 +22,14 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
-          run_install: false 
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
 
       - name: Configure Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'pnpm' 
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -44,6 +48,8 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+      
+      id-token: write
     steps:
       - name: Code Checkout
         uses: actions/checkout@v4
@@ -53,12 +59,13 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
 
       - name: Configure Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -67,4 +74,4 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm dlx semantic-release
+        run: pnpm exec semantic-release

@@ -39,7 +39,7 @@ export class UserEntity {
 
   @Column({ type: 'varchar', default: RolesEnum.USER })
   role: RolesEnum;
-  
+
   @Column({ default: false })
   isAdmin: boolean;
 

@@ -10,7 +10,10 @@ export class FavoritesAnimesController {
   ) {}
 
   @Post(':id')
-  create(@Param('id') animeId: number, @User('sub') userId: string): Promise<object> {
+  create(
+    @Param('id') animeId: number,
+    @User('sub') userId: string,
+  ): Promise<object> {
     return this.favoritesAnimesService.create(animeId, userId);
   }
 

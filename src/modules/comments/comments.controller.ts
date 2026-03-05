@@ -6,9 +6,7 @@ import {
   Patch,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
-import type { Request } from 'express';
 import { CommentsService } from './comments.service';
 import { CommentsDto } from './dtos/comments.dto';
 import { Throttle } from '@nestjs/throttler';
@@ -25,7 +23,10 @@ export class CommentsController {
   }
 
   @Get()
-  async getComments(@User('sub') userId: string, @Query('animeId') animeId: number) {
+  async getComments(
+    @User('sub') userId: string,
+    @Query('animeId') animeId: number,
+  ) {
     return this.commentsService.getCommentsByAnimeId(Number(animeId), userId);
   }
 
@@ -40,7 +41,10 @@ export class CommentsController {
   }
 
   @Patch('like')
-  async likeComment(@User('sub') userId: string, @Body('commentId') commentId: number) {
+  async likeComment(
+    @User('sub') userId: string,
+    @Body('commentId') commentId: number,
+  ) {
     return this.commentsService.likeComment(Number(commentId), userId);
   }
 
