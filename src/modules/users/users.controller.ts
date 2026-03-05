@@ -26,14 +26,14 @@ export class UsersController {
   constructor(
     private readonly userService: UsersService,
     private readonly queryBus: QueryBus,
-  ) { }
+  ) {}
 
-  @Get('me') 
+  @Get('me')
   @HttpCode(HttpStatus.OK)
-  async getMyProfile(@User('sub') userId: string) {
+  async getMyProfile(@User('sub') userId: string): Promise<UserEntity> {
     const query = new GetUserDto();
     query.id = userId;
-    return this.queryBus.execute(query);
+    return this.queryBus.execute<GetUserDto, UserEntity>(query);
   }
 
   @Post('upload-avatar')

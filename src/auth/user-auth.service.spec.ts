@@ -20,7 +20,7 @@ const mockUser: UserEntity = {
   role: RolesEnum.USER,
   isAdmin: false,
   isDeleted: false,
-  deletedAt: null as any,
+  deletedAt: null!,
   updatedAt: new Date(),
   createdAt: new Date(),
   bio: null,
@@ -32,8 +32,8 @@ const mockUser: UserEntity = {
   twoFactorEnabled: false,
   preferredLanguage: 'en',
   favoriteAnimes: [],
-  lastUserAgent: null as any,
-  lastIpAddress: null as any,
+  lastUserAgent: '',
+  lastIpAddress: '',
   avatarUrl: '',
 };
 
@@ -105,7 +105,10 @@ describe('UserAuthService', () => {
       userRepository.findOne.mockResolvedValue(null);
       (bcrypt.genSalt as jest.Mock).mockResolvedValue('salt');
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
-      userRepository.create.mockReturnValue({ ...registerDto, password: 'hashedPassword' });
+      userRepository.create.mockReturnValue({
+        ...registerDto,
+        password: 'hashedPassword',
+      });
       userRepository.save.mockResolvedValue(undefined);
 
       const result = await service.register(registerDto);
@@ -118,10 +121,11 @@ describe('UserAuthService', () => {
     });
 
     it('should throw Error when username already exists', async () => {
-      // username check returns existing user
       userRepository.findOne.mockResolvedValueOnce(mockUser);
 
-      await expect(service.register(registerDto)).rejects.toThrow('Registration failed');
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Registration failed',
+      );
     });
 
     it('should throw Error when nickName already exists', async () => {
@@ -129,17 +133,24 @@ describe('UserAuthService', () => {
         .mockResolvedValueOnce(null) // username not found
         .mockResolvedValueOnce(mockUser); // nickName found
 
-      await expect(service.register(registerDto)).rejects.toThrow('Registration failed');
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Registration failed',
+      );
     });
 
     it('should throw Error when save fails', async () => {
       userRepository.findOne.mockResolvedValue(null);
       (bcrypt.genSalt as jest.Mock).mockResolvedValue('salt');
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
-      userRepository.create.mockReturnValue({ ...registerDto, password: 'hashedPassword' });
+      userRepository.create.mockReturnValue({
+        ...registerDto,
+        password: 'hashedPassword',
+      });
       userRepository.save.mockRejectedValue(new Error('db error'));
 
-      await expect(service.register(registerDto)).rejects.toThrow('Registration failed');
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Registration failed',
+      );
     });
   });
 
@@ -150,7 +161,7 @@ describe('UserAuthService', () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       userRepository.update.mockResolvedValue(undefined);
-      jwtService.signAsync.mockResolvedValue('token' as any);
+      (jwtService.signAsync as jest.Mock).mockResolvedValue('token');
 
       const result = await service.login(loginDto);
 
@@ -164,13 +175,19 @@ describe('UserAuthService', () => {
 
     it('should throw UnauthorizedException when username is undefined', async () => {
       await expect(
-        service.login({ username: undefined as any, password: 'Password1!' }),
+        service.login({
+          username: undefined as unknown as string,
+          password: 'Password1!',
+        }),
       ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException when password is undefined', async () => {
       await expect(
-        service.login({ username: 'test@example.com', password: undefined as any }),
+        service.login({
+          username: 'test@example.com',
+          password: undefined as unknown as string,
+        }),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -178,19 +195,24 @@ describe('UserAuthService', () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
   describe('refreshToken', () => {
     it('should return a new access token for a valid refresh token', async () => {
-      jwtService.verifyAsync.mockResolvedValue({
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue({
         username: 'test@example.com',
         password: 'pass',
-      } as any);
+      });
       userRepository.findOne.mockResolvedValue(mockUser);
-      jwtService.decode.mockReturnValue({ username: 'test@example.com', password: 'pass' } as any);
-      jwtService.signAsync.mockResolvedValue('new-access-token' as any);
+      (jwtService.decode as jest.Mock).mockReturnValue({
+        username: 'test@example.com',
+        password: 'pass',
+      });
+      (jwtService.signAsync as jest.Mock).mockResolvedValue('new-access-token');
 
       const result = await service.refreshToken('valid-refresh-token');
 
@@ -200,7 +222,9 @@ describe('UserAuthService', () => {
     it('should throw UnauthorizedException for an invalid refresh token', async () => {
       jwtService.verifyAsync.mockRejectedValue(new Error('invalid token'));
 
-      await expect(service.refreshToken('invalid-token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshToken('invalid-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -209,7 +233,7 @@ describe('UserAuthService', () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       userRepository.update.mockResolvedValue(undefined);
-      jwtService.signAsync.mockResolvedValue('token' as any);
+      (jwtService.signAsync as jest.Mock).mockResolvedValue('token');
 
       const result = await service.verifyUser('test@example.com', 'Password1!');
 
@@ -221,63 +245,89 @@ describe('UserAuthService', () => {
       });
       expect(userRepository.update).toHaveBeenCalledWith(
         { id: mockUser.id },
-        { lastLogin: expect.any(Date) },
+        { lastLogin: expect.any(Date) as Date },
       );
     });
 
     it('should throw UnauthorizedException when user is not found', async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.verifyUser('ghost@example.com', 'Password1!')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyUser('ghost@example.com', 'Password1!'),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException when password is invalid', async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.verifyUser('test@example.com', 'WrongPassword!')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyUser('test@example.com', 'WrongPassword!'),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
   describe('verifyToken', () => {
     it('should return the jwt payload for a valid token', async () => {
-      jwtService.verifyAsync.mockResolvedValue({ username: 'test@example.com' } as any);
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue({
+        username: 'test@example.com',
+      });
       userRepository.findOne.mockResolvedValue(mockUser);
-      jwtService.decode.mockReturnValue({ username: 'test@example.com', password: 'pass' } as any);
+      (jwtService.decode as jest.Mock).mockReturnValue({
+        username: 'test@example.com',
+        password: 'pass',
+      });
 
       const result = await service.verifyToken('valid-token');
 
-      expect(result).toEqual({ username: 'test@example.com', password: 'pass' });
+      expect(result).toEqual({
+        username: 'test@example.com',
+        password: 'pass',
+      });
     });
 
     it('should throw UnauthorizedException for an empty token', async () => {
-      await expect(service.verifyToken('')).rejects.toThrow(UnauthorizedException);
+      await expect(service.verifyToken('')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException when payload is missing username', async () => {
-      jwtService.verifyAsync.mockResolvedValue({ username: 'test@example.com' } as any);
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue({
+        username: 'test@example.com',
+      });
       userRepository.findOne.mockResolvedValue(mockUser);
-      jwtService.decode.mockReturnValue({ username: null, password: 'pass' } as any);
+      (jwtService.decode as jest.Mock).mockReturnValue({
+        username: null,
+        password: 'pass',
+      });
 
-      await expect(service.verifyToken('token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.verifyToken('token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException when payload is missing password', async () => {
-      jwtService.verifyAsync.mockResolvedValue({ username: 'test@example.com' } as any);
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue({
+        username: 'test@example.com',
+      });
       userRepository.findOne.mockResolvedValue(mockUser);
-      jwtService.decode.mockReturnValue({ username: 'test@example.com', password: null } as any);
+      (jwtService.decode as jest.Mock).mockReturnValue({
+        username: 'test@example.com',
+        password: null,
+      });
 
-      await expect(service.verifyToken('token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.verifyToken('token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException when jwtService.verifyAsync fails', async () => {
       jwtService.verifyAsync.mockRejectedValue(new Error('invalid'));
 
-      await expect(service.verifyToken('bad-token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.verifyToken('bad-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -285,7 +335,7 @@ describe('UserAuthService', () => {
     it('should update user with a verification token', async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedCode');
-      notifierService.notify.mockResolvedValue(undefined as any);
+      notifierService.notify.mockResolvedValue(undefined);
       userRepository.update.mockResolvedValue(undefined);
 
       await service.forgotPassword('test@example.com');
@@ -294,7 +344,7 @@ describe('UserAuthService', () => {
         { id: mockUser.id },
         {
           verificationToken: 'hashedCode',
-          tokenExpiry: expect.any(Date),
+          tokenExpiry: expect.any(Date) as Date,
         },
       );
     });
@@ -310,22 +360,25 @@ describe('UserAuthService', () => {
     it('should throw BadRequestException when repository update fails', async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedCode');
-      notifierService.notify.mockResolvedValue(undefined as any);
+      notifierService.notify.mockResolvedValue(undefined);
       userRepository.update.mockRejectedValue(new Error('db error'));
 
-      await expect(service.forgotPassword('test@example.com')).rejects.toThrow(BadRequestException);
+      await expect(service.forgotPassword('test@example.com')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
   describe('generateCode', () => {
     it('should return a hashed code and notify the user', async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
-      notifierService.notify.mockResolvedValue(undefined as any);
+      notifierService.notify.mockResolvedValue(undefined);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedCode');
 
       const result = await service.generateCode('test@example.com');
 
       expect(result).toBe('hashedCode');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(notifierService.notify).toHaveBeenCalledWith(
         expect.objectContaining({ subject: 'Password Reset Attempt' }),
         expect.objectContaining({ clientEmail: mockUser.username }),
@@ -335,7 +388,9 @@ describe('UserAuthService', () => {
     it('should throw BadRequestException when user is not found', async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.generateCode('ghost@example.com')).rejects.toThrow(BadRequestException);
+      await expect(service.generateCode('ghost@example.com')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -402,7 +457,10 @@ describe('UserAuthService', () => {
     });
 
     it('should return false when verificationToken is missing', async () => {
-      userRepository.findOne.mockResolvedValue({ ...mockUser, verificationToken: null });
+      userRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        verificationToken: null,
+      });
 
       const result = await service.verifyCode('test@example.com', '123456');
 
@@ -440,7 +498,7 @@ describe('UserAuthService', () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       (bcrypt.genSalt as jest.Mock).mockResolvedValue('salt');
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedIp');
-      notifierService.notify.mockResolvedValue(undefined as any);
+      notifierService.notify.mockResolvedValue(undefined);
       userRepository.update.mockResolvedValue(undefined);
     });
 
@@ -454,8 +512,6 @@ describe('UserAuthService', () => {
     });
 
     it('should throw BadRequestException when final update fails', async () => {
-      // First update call (void, fire-and-forget in saveIpOfUserAgent) resolves fine;
-      // second update call (awaited in saveUserAgent) rejects.
       userRepository.update
         .mockResolvedValueOnce(undefined) // saveIpOfUserAgent's void update
         .mockRejectedValueOnce(new Error('db error')); // saveUserAgent's awaited update

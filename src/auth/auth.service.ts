@@ -66,6 +66,7 @@ export class AuthService {
     } catch (error) {
       throw new Error(
         `Failed to obtain access token: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
       );
     }
   }
@@ -100,6 +101,7 @@ export class AuthService {
     } catch (error) {
       throw new Error(
         `Failed to refresh access token: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
       );
     }
   }

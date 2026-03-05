@@ -17,7 +17,7 @@ type LoginResponse = {
   access_token: string;
   refresh_token: string;
   userId: string;
-  role: string
+  role: string;
 };
 
 type JwtPayload = {
@@ -126,18 +126,18 @@ export class UserAuthService {
     const access_token = await this.jwtService.signAsync({
       sub: user.id,
       username: user.username,
-      role: user.role
+      role: user.role,
     });
     const refresh_token = await this.jwtService.signAsync({
       sub: user.id,
       username: user.username,
-      role: user.role
+      role: user.role,
     });
     return {
       access_token,
       refresh_token,
       userId: user.id,
-      role: user.role
+      role: user.role,
     };
   }
 
