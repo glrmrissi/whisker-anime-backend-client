@@ -71,6 +71,9 @@ importers:
       swc-loader:
         specifier: ^0.2.6
         version: 0.2.7(@swc/core@1.15.18)(webpack@5.104.1(@swc/core@1.15.18))
+      typeorm:
+        specifier: ^0.3.28
+        version: 0.3.28(ioredis@5.9.3)(pg@8.20.0)(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@22.19.13)(typescript@5.9.3))
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
