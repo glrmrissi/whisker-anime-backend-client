@@ -74,4 +74,4 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm exec semantic-release
+        run: pnpm dlx semantic-release --plugins @semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/github,@semantic-release/npm,conventional-changelog-conventionalcommits
