@@ -32,6 +32,7 @@ import { CommentsEntity } from './shared/entities/CommentsEntity';
       entities: [UserEntity, FavoritesAnimeEntity, CommentsEntity],
       //synchronize: true,
     }),
+    TypeOrmModule.forFeature([UserEntity]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

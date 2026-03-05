@@ -74,12 +74,6 @@ export class UserAuthController {
       sameSite: 'strict',
       maxAge: 7 * 24 * 3600000,
     });
-    res.cookie('user_id', tokens.userId, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
-      maxAge: 1800000,
-    });
 
     return { message: 'Login successful' };
   }
