@@ -12,6 +12,7 @@ import type { Request } from 'express';
 import { CommentsService } from './comments.service';
 import { CommentsDto } from './dtos/comments.dto';
 import { Throttle } from '@nestjs/throttler';
+import { User } from 'src/decorators/user.decorator';
 
 @Controller('comments')
 export class CommentsController {
@@ -19,14 +20,12 @@ export class CommentsController {
 
   @Post()
   @Throttle({ default: { limit: 3, ttl: 60000 } })
-  async comment(@Req() req: Request, @Body() commentsDto: CommentsDto) {
-    const userId = (req.cookies['user_id'] as string | undefined) ?? '';
+  async comment(@User('sub') userId: string, @Body() commentsDto: CommentsDto) {
     return this.commentsService.commitComment(userId, commentsDto);
   }
 
   @Get()
-  async getComments(@Req() req: Request, @Query('animeId') animeId: number) {
-    const userId = (req.cookies['user_id'] as string | undefined) ?? '';
+  async getComments(@User('sub') userId: string, @Query('animeId') animeId: number) {
     return this.commentsService.getCommentsByAnimeId(Number(animeId), userId);
   }
 
@@ -41,8 +40,7 @@ export class CommentsController {
   }
 
   @Patch('like')
-  async likeComment(@Req() req: Request, @Body('commentId') commentId: number) {
-    const userId = (req.cookies['user_id'] as string | undefined) ?? '';
+  async likeComment(@User('sub') userId: string, @Body('commentId') commentId: number) {
     return this.commentsService.likeComment(Number(commentId), userId);
   }
 

@@ -1,4 +1,5 @@
 # Whisker Anime — Backend
+[![CI/CD Pipeline](https://github.com/glrmrissi/whisker-anime-backend-client/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/glrmrissi/whisker-anime-backend-client/actions/workflows/release.yml)
 
 Complete backend for the Whisker Anime platform — an anime catalog and tracking system with advanced authentication, email notifications, and Kitsu API integration.
 

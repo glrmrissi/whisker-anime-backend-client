@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Roles } from '../enum/roles.enum';
+import { RolesEnum } from '../enum/roles.enum';
 import { Exclude } from 'class-transformer';
 
 @Entity('users')
@@ -37,9 +37,9 @@ export class UserEntity {
   @Column({ unique: true })
   nickName: string;
 
-  @Column({ type: 'varchar', default: Roles.USER })
-  role: Roles;
-
+  @Column({ type: 'varchar', default: RolesEnum.USER })
+  role: RolesEnum;
+  
   @Column({ default: false })
   isAdmin: boolean;
 
