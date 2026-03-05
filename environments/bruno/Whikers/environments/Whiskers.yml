@@ -1,6 +1,0 @@
-name: Whiskers
-variables:
-  - name: x_access_token
-    value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImV4ZW1wbG9AZ21haWwuY29tIiwiaWF0IjoxNzcyNjAyNzIyLCJleHAiOjE3NzI2MjQzMjJ9.TEhripq8x0Eio75GC9eWK-eESfpdcHoFfc73dY17uEg
-  - name: user_id
-    value: ec534431-8cf8-449c-9f5d-e2dd7ff370b2
