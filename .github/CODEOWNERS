@@ -1,2 +1,32 @@
-# The owner reviews everything
+# ------------------------------------------------------------------
+# GENERAL RULES
+# ------------------------------------------------------------------
+# By default, you are the owner of everything
 * @glrmrissi
+
+# ------------------------------------------------------------------
+# INFRASTRUCTURE & CONFIGURATION (CRITICAL AREAS)
+# ------------------------------------------------------------------
+# Pipeline and release rule changes require full attention
+/.github/workflows/      @glrmrissi
+/.releaserc.json         @glrmrissi
+/package.json            @glrmrissi
+/pnpm-lock.yaml          @glrmrissi
+/Dockerfile* @glrmrissi
+
+# ------------------------------------------------------------------
+# BACKEND (NESTJS)
+# ------------------------------------------------------------------
+/src/                    @glrmrissi
+
+# ------------------------------------------------------------------
+# WORKER (GO)
+# ------------------------------------------------------------------
+/worker/                 @glrmrissi
+
+# ------------------------------------------------------------------
+# DOCUMENTATION (NON-CRITICAL)
+# ------------------------------------------------------------------
+# Documentation and markdown files
+/docs/                   @glrmrissi
+*.md                     @glrmrissi

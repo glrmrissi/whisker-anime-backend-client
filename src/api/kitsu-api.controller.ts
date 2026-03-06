@@ -55,6 +55,28 @@ export class KitsuApiController {
     return this.kitsuApiService.searchAnime(title, finalLimit);
   }
   @Public()
+  @Get('episodes/:id')
+  async getEpisode(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<unknown> {
+    return this.kitsuApiService.getEpisode(id);
+  }
+
+  @Public()
+  @Get('anime/:id/episodes')
+  async getAnimeEpisodes(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
+    @Query('page[limit]', new ParseIntPipe({ optional: true })) pageLimit?: number,
+    @Query('page[offset]', new ParseIntPipe({ optional: true })) pageOffset?: number,
+  ): Promise<unknown> {
+    const finalLimit = limit ?? pageLimit ?? 20;
+    const finalOffset = offset ?? pageOffset ?? 0;
+    return this.kitsuApiService.getAnimeEpisodes(id, finalLimit, finalOffset);
+  }
+
+  @Public()
   @Get('anime/:id')
   async getAnime(
     @Param('id', ParseIntPipe) id: number,

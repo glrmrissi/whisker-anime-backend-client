@@ -19,6 +19,7 @@ import { FavoritesAnimesModule } from './modules/favorites-animes/favorites-anim
 import { CronJobModule } from './modules/cron-jobs/cron-job.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { CommentsEntity } from './shared/entities/CommentsEntity';
+import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { CommentsEntity } from './shared/entities/CommentsEntity';
     FavoritesAnimesModule,
     CronJobModule,
     CommentsModule,
+    RecommendationsModule,
   ],
   controllers: [AppController, KitsuApiController],
   providers: [

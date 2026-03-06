@@ -225,10 +225,11 @@ export class KitsuApiService {
     }
   }
 
-  async getAnime(id: number, include: string): Promise<AnimeByIdType> {
-    const params: Record<string, any> = {
-      include: include,
-    };
+  async getAnime(id: number, include?: string): Promise<AnimeByIdType> {
+    const params: Record<string, any> = {};
+    if (include) {
+      params['include'] = include;
+    }
     return this.get(`/anime/${id}`, params);
   }
 
@@ -286,5 +287,20 @@ export class KitsuApiService {
     };
 
     return this.get('/anime', params);
+  }
+
+  async getAnimeEpisodes(
+    id: number,
+    limit: number = 20,
+    offset: number = 0,
+  ): Promise<unknown> {
+    return this.get(`/anime/${id}/episodes`, {
+      'page[limit]': limit,
+      'page[offset]': offset,
+    });
+  }
+
+  async getEpisode(id: number): Promise<unknown> {
+    return this.get(`/episodes/${id}`);
   }
 }
