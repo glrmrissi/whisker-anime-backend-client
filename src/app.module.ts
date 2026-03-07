@@ -7,7 +7,7 @@ import { ApiModule } from './api/api.module';
 import { KitsuApiController } from './api/kitsu-api.controller';
 import { MulterModule } from '@nestjs/platform-express';
 import { AuthGuard } from './guards/auth.guard';
-import { APP_GUARD } from '@nestjs/core/constants';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core/constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './shared/entities/UserEntity';
 import { FavoritesAnimeEntity } from './shared/entities/FavoritesAnimeEntity';
@@ -20,6 +20,9 @@ import { CronJobModule } from './modules/cron-jobs/cron-job.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { CommentsEntity } from './shared/entities/CommentsEntity';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { HistoryModule } from './modules/history/history.module';
+import { HistoryInterceptor } from './interceptors/history.interceptor';
+import { HistoryEntity } from './shared/entities/HistoryEntity';
 
 @Module({
   imports: [
@@ -30,7 +33,7 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [UserEntity, FavoritesAnimeEntity, CommentsEntity],
+      entities: [UserEntity, FavoritesAnimeEntity, CommentsEntity, HistoryEntity],
       //synchronize: true,
     }),
     TypeOrmModule.forFeature([UserEntity]),
@@ -72,6 +75,7 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
     CronJobModule,
     CommentsModule,
     RecommendationsModule,
+    HistoryModule,
   ],
   controllers: [AppController, KitsuApiController],
   providers: [
@@ -83,6 +87,10 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useExisting: HistoryInterceptor,
     },
   ],
 })
