@@ -198,7 +198,9 @@ export class KitsuApiService {
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, String(value));
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
       });
     }
 
@@ -279,12 +281,13 @@ export class KitsuApiService {
     sort?: string,
     subtype?: string,
   ): Promise<KitsuAnimeData> {
-    const params: Record<string, any> = {
+    const params: Record<string, string | number> = {
       'page[limit]': limit,
       'page[offset]': offset,
-      sort: sort,
-      'filter[subtype]': subtype,
     };
+
+    if (sort) params['sort'] = sort;
+    if (subtype) params['filter[subtype]'] = subtype.toLowerCase();
 
     return this.get('/anime', params);
   }
