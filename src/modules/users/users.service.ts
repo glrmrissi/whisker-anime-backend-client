@@ -21,7 +21,7 @@ export class UsersService {
     private readonly userRepository: Repository<UserEntity>,
     private readonly queryBus: QueryBus,
     private readonly entityManager: EntityManager,
-  ) {}
+  ) { }
 
   async updateAvatar(userId: string, file: Buffer): Promise<object> {
     if (!file || !Buffer.isBuffer(file)) {
@@ -33,8 +33,8 @@ export class UsersService {
     await this.getUserByUuid(userId);
     try {
       const resizedBuffer = await sharp(file)
-        .resize(500, 500)
-        .toFormat('jpeg')
+        .resize(150, 150)
+        .toFormat('webp')
         .toBuffer();
       return await this.saveImageOnUploadFolder(resizedBuffer, userId);
     } catch (error) {
@@ -49,14 +49,14 @@ export class UsersService {
         fs.mkdirSync('./uploads');
       }
       await fs.promises.writeFile(
-        `./uploads/user-profile-${userId}.jpeg`,
+        `./uploads/user-profile-${userId}.webp`,
         file,
       );
       await this.userRepository.update(
         { id: userId },
-        { avatarUrl: `uploads/user-profile-${userId}.jpeg` },
+        { avatarUrl: `uploads/user-profile-${userId}.webp` },
       );
-      return { avatarUrl: `uploads/user-profile-${userId}.jpeg` };
+      return { avatarUrl: `uploads/user-profile-${userId}.webp` };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new BadRequestException('Failed to save image', message);
