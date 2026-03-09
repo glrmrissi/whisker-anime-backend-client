@@ -10,9 +10,14 @@ import sharp from 'sharp';
 import fs from 'fs';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs/dist/query-bus';
+import { EditValueRequestDto } from './dto/edit.dto';
 
 type AvatarAndName = { nickName: string; avatarUrl: string };
 type AvatarOnly = { avatarUrl: string };
+
+export type ProfileUpdateType = {
+  bio: string;
+}
 
 @Injectable()
 export class UsersService {
@@ -21,7 +26,7 @@ export class UsersService {
     private readonly userRepository: Repository<UserEntity>,
     private readonly queryBus: QueryBus,
     private readonly entityManager: EntityManager,
-  ) {}
+  ) { }
 
   async updateAvatar(userId: string, file: Buffer): Promise<object> {
     if (!file || !Buffer.isBuffer(file)) {
@@ -33,8 +38,8 @@ export class UsersService {
     await this.getUserByUuid(userId);
     try {
       const resizedBuffer = await sharp(file)
-        .resize(500, 500)
-        .toFormat('jpeg')
+        .resize(150, 150)
+        .toFormat('webp')
         .toBuffer();
       return await this.saveImageOnUploadFolder(resizedBuffer, userId);
     } catch (error) {
@@ -49,14 +54,14 @@ export class UsersService {
         fs.mkdirSync('./uploads');
       }
       await fs.promises.writeFile(
-        `./uploads/user-profile-${userId}.jpeg`,
+        `./uploads/user-profile-${userId}.webp`,
         file,
       );
       await this.userRepository.update(
         { id: userId },
-        { avatarUrl: `uploads/user-profile-${userId}.jpeg` },
+        { avatarUrl: `uploads/user-profile-${userId}.webp` },
       );
-      return { avatarUrl: `uploads/user-profile-${userId}.jpeg` };
+      return { avatarUrl: `uploads/user-profile-${userId}.webp` };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new BadRequestException('Failed to save image', message);
@@ -96,19 +101,21 @@ export class UsersService {
     return user;
   }
 
-  async handlingModifyUser(userId: string): Promise<void> {
+  async handlingModifyUser(userId: string, body: EditValueRequestDto): Promise<{ message: string }> {
     await this.getUserByUuid(userId);
-    await this.checkWhatFieldsChanges(userId);
-  }
 
-  async checkWhatFieldsChanges(userId: string): Promise<UserEntity> {
-    const user = await this.getUserByUuid(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+    const updateData = Object.fromEntries(
+      Object.entries(body).filter(([_, value]) => value !== null && value !== undefined)
+    );
+
+    try {
+      await this.userRepository.update({ id: userId }, updateData);
+
+      return { message: "Updated profile successfully" };
+    } catch {
+      throw new Error('Error updating user profile');
     }
-    return user;
   }
-
   async getAvatarAndName(userId: string): Promise<AvatarAndName[]> {
     return this.entityManager.query<AvatarAndName[]>(
       `
