@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -20,13 +21,16 @@ import { RolesEnum } from 'src/shared/enum/roles.enum';
 import { IsOwnerCheck } from 'src/decorators/ckeck-owner.decorator';
 import { User } from 'src/decorators/user.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
+import { EditValueRequestDto } from './dto/edit.dto';
+
+
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly userService: UsersService,
     private readonly queryBus: QueryBus,
-  ) {}
+  ) { }
 
   @Get('me')
   @HttpCode(HttpStatus.OK)
@@ -73,10 +77,9 @@ export class UsersController {
     return this.userService.getAvatar(userId);
   }
 
-  @Post('edit')
-  @IsOwnerCheck()
-  handlingEdit(@User('sub') userId: string): Promise<void> {
-    return this.userService.handlingModifyUser(userId);
+  @Patch('edit')
+  handlingEdit(@User('sub') userId: string, @Body('body') body: EditValueRequestDto): Promise<{ message: string }> {
+    return this.userService.handlingModifyUser(userId, body);
   }
 
   @Get(':id')

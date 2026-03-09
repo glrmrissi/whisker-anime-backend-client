@@ -10,9 +10,14 @@ import sharp from 'sharp';
 import fs from 'fs';
 import { GetUserDto } from 'src/auth/querys/get-user.handler';
 import { QueryBus } from '@nestjs/cqrs/dist/query-bus';
+import { EditValueRequestDto } from './dto/edit.dto';
 
 type AvatarAndName = { nickName: string; avatarUrl: string };
 type AvatarOnly = { avatarUrl: string };
+
+export type ProfileUpdateType = {
+  bio: string;
+}
 
 @Injectable()
 export class UsersService {
@@ -96,19 +101,21 @@ export class UsersService {
     return user;
   }
 
-  async handlingModifyUser(userId: string): Promise<void> {
+  async handlingModifyUser(userId: string, body: EditValueRequestDto): Promise<{ message: string }> {
     await this.getUserByUuid(userId);
-    await this.checkWhatFieldsChanges(userId);
-  }
 
-  async checkWhatFieldsChanges(userId: string): Promise<UserEntity> {
-    const user = await this.getUserByUuid(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+    const updateData = Object.fromEntries(
+      Object.entries(body).filter(([_, value]) => value !== null && value !== undefined)
+    );
+
+    try {
+      await this.userRepository.update({ id: userId }, updateData);
+
+      return { message: "Updated profile successfully" };
+    } catch {
+      throw new Error('Error updating user profile');
     }
-    return user;
   }
-
   async getAvatarAndName(userId: string): Promise<AvatarAndName[]> {
     return this.entityManager.query<AvatarAndName[]>(
       `
