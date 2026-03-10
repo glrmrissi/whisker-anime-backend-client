@@ -35,8 +35,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Whisker Anime API')
-    .setDescription('The Whisker Anime API description')
+    .setDescription('Whisker Anime REST API — anime streaming platform and community.')
     .setVersion('1.0')
+    .addCookieAuth('x_access_token')
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
