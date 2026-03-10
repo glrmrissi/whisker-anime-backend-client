@@ -1,6 +1,8 @@
-import { IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
 export class EditValueRequestDto {
-    @IsString()
-    bio: string
+  @ApiProperty({ example: 'Anime fan since 2005', description: 'User biography text' })
+  @IsString()
+  bio: string;
 }
