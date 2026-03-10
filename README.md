@@ -3,99 +3,109 @@
 
 Complete backend for the Whisker Anime platform — an anime catalog and tracking system with advanced authentication, email notifications, and Kitsu API integration.
 
-**Main Technologies**  
-![NestJS](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white) 
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) 
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white) 
-![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white) 
-![BullMQ](https://img.shields.io/badge/BullMQ-FF9900?logo=redis&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+
+---
+
+## Tech Stack
+
+- **NestJS 11** — modular framework with CQRS pattern (`@nestjs/cqrs`)
+- **TypeScript** — compiled with **SWC** for faster builds
+- **PostgreSQL 14** — relational database managed by **TypeORM** (with migration support)
+- **Redis** + **BullMQ** — async job queue for email notifications
+- **Docker** + **Docker Compose** — multi-stage image (`node:20-alpine`), orchestrates app, Postgres, and Redis
+- **pnpm** — package manager
+- **Swagger** (`@nestjs/swagger`) — interactive API docs available at `/api-docs`
+- **JWT** — cookie-based authentication (`x_access_token`)
+- **bcrypt** — password hashing with salt + pepper
+- **Throttler** (`@nestjs/throttler`) — rate limiting
+- **Sharp** — server-side image processing for avatar uploads
+- **class-validator** + **class-transformer** — request validation via global `ValidationPipe`
+- **Semantic Release** — automated versioning and changelogs from Conventional Commits
+- **GitHub Actions** — CI/CD pipeline on push to `main`
 
 ---
 
 ## Features
 
 ### Authentication & Session Management
-- User registration and login with **JWT**
+- User registration and login with **JWT** stored in HTTP-only cookies
 - Password hashing with **bcrypt** (salt + pepper)
 - Password recovery via email code
 - New login detection with security alert email
 - IP recognition (stored as hash for privacy)
 
-### Notifications (Whisker Notifier)
-- Independent email processing module
-- Asynchronous queues with **BullMQ + Redis**
-- Transactional emails: new login, unknown IP, and password recovery
+### Notifications
+- Asynchronous email processing via **BullMQ + Redis** queues
+- Transactional emails: new login, unknown IP, password recovery
+- Consumed by the external **Go worker** (`whisker-anime-notifier-go`)
 
 ### Anime Module
-- Full integration with **Kitsu API**
-- Optimized endpoints for frontend consumption
-- Favorites system
-- Nested comments module
+- Full integration with the **Kitsu API**
+- Favorites, watch history, and nested comments
+- Personalized anime recommendations
 
 ### Technical Highlights
-- Relational database with **TypeORM**
-- Modular and scalable architecture (NestJS)
-- Secure credential and IP handling
-- Ready for Angular frontend integration
+- CQRS pattern for clean command/query separation
+- Global performance logging interceptor
+- Static file serving for user-uploaded content (`/uploads/`)
+- Configurable CORS via environment variable
 
 ---
 
-## How to Run
+## API Documentation
 
-### Prerequisites
-- Node.js (v18 or higher)
-- PostgreSQL
-- Redis
-- Git
+Swagger UI is available at:
 
-### Installation
+```
+http://localhost:3001/api-docs
+```
+
+Cookie authentication (`x_access_token`) is pre-configured in the Swagger interface.
+
+---
+
+## Running with Docker
 
 ```bash
-# Clone the repository
-git clone https://github.com/glrmrissi/whisker-anime-backend-client.git
-cd whisker-anime-backend-client
-
-# Install dependencies
-npm install
-
-# Set up environment variables
 cp .env.example .env
-# Edit the .env file with your credentials
+# Fill in your credentials in .env
+
+docker compose up --build
 ```
-### Running the application
+
+The API will be available at `http://localhost:8000`.
+
+---
+
+## Running Locally
+
+**Prerequisites:** Node.js 20+, PostgreSQL, Redis, pnpm
 
 ```bash
-Development mode (with hot-reload)
-npm run start:dev
-
-# Build for production
-npm run build
-
-# Production mode
-npm run start:prod
-The application will be available at http://localhost:3000.
-API Documentation: Access /api (Swagger UI included).
+pnpm install
+cp .env.example .env
+pnpm run start:dev
 ```
 
-
-### Environment Variables (.env.example)
-The .env.example file is already in the repository. Key variables include:
+**Database migrations:**
 
 ```bash
-DATABASE_URL, REDIS_URL
-JWT_SECRET, JWT_EXPIRES_IN
-EMAIL_HOST, EMAIL_USER, EMAIL_PASS
-KITSU_API_BASE_URL
-PEPPER_SECRET (for bcrypt salt+pepper)
+pnpm run migration:run
 ```
 
+---
 
-### Related Repositories
+## Related Repositories
 
-- Frontend: whisker-anime-frontend-client
-- Notifier Service (Go): whisker-anime-notifier-go
+- Frontend: https://github.com/glrmrissi/whisker-anime-frontend-client
+- Notifier Worker (Go): https://github.com/glrmrissi/whisker-anime-notifier-go
+- Recommender (Go): https://github.com/glrmrissi/whisker-anime-recommender
 
+---
 
-### About the Project
-Anime platform backend built with NestJS, PostgreSQL, Redis/BullMQ queues, JWT authentication with IP recognition, bcrypt (salt+pepper), email notifications, and Kitsu API integration.
-Developed by: Guilherme Rissi
+Developed by [Guilherme Rissi](https://github.com/glrmrissi)
